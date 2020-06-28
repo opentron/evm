@@ -19,3 +19,4 @@ digest = "0.8"
 
 hex = "0.4"
 num-bigint = "0.3"
+num-traits = "0.2"

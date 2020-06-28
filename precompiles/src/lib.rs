@@ -4,6 +4,7 @@ use evm_core::{ExitError, ExitSucceed};
 
 use digest::Digest;
 use num_bigint::BigUint;
+use num_traits::Zero;
 use primitive_types::{H160, H256, U256};
 use secp256k1::{Message, RecoveryId, Signature};
 use sha2::Sha256;
@@ -83,7 +84,7 @@ pub fn tron_precompile(
 			let cost = 0;
 
 			// println!("!! base = {}, exp = {}, modulus = {}", base, exp, modulus);
-			if modulus == 0.try_into().unwrap() {
+			if modulus == BigUint::zero() {
 				return Some(Ok((ExitSucceed::Returned, vec![], cost)));
 			}
 
