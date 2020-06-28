@@ -442,3 +442,12 @@ pub fn calltokenvalue<H: Handler>(runtime: &mut Runtime) -> Control<H> {
 
 	Control::Continue
 }
+
+pub fn tokenbalance<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H> {
+	pop_u256!(runtime, token_id);
+	pop!(runtime, address);
+
+	push_u256!(runtime, handler.token_balance(address.into(), token_id));
+
+	Control::Continue
+}

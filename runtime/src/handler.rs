@@ -119,4 +119,10 @@ pub trait Handler {
 	) -> Result<(), ExitError> {
 		Err(ExitError::OutOfGas)
 	}
+
+	// TRON extension
+
+	/// Get token balance of address.
+	fn token_balance(&self, address: H160, token_id: U256) -> U256;
+
 }

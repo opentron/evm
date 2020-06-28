@@ -6,6 +6,7 @@ mod memory;
 
 pub use self::memory::{MemoryBackend, MemoryVicinity, MemoryAccount};
 
+use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use primitive_types::{H160, H256, U256};
 
@@ -14,6 +15,8 @@ use primitive_types::{H160, H256, U256};
 pub struct Basic {
 	/// Account balance.
 	pub balance: U256,
+	/// Account token balance.
+	pub token_balance: BTreeMap<U256, U256>,
 	/// Account nonce.
 	pub nonce: U256,
 }

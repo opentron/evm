@@ -36,6 +36,8 @@ pub struct MemoryAccount {
 	pub nonce: U256,
 	/// Account balance.
 	pub balance: U256,
+	/// Account token balance.
+	pub token_balance: BTreeMap<U256, U256>,
 	/// Full account storage.
 	pub storage: BTreeMap<H256, H256>,
 	/// Account code.
@@ -94,7 +96,7 @@ impl<'vicinity> Backend for MemoryBackend<'vicinity> {
 
 	fn basic(&self, address: H160) -> Basic {
 		self.state.get(&address).map(|a| {
-			Basic { balance: a.balance, nonce: a.nonce }
+			Basic { balance: a.balance, nonce: a.nonce, token_balance: a.token_balance.clone() }
 		}).unwrap_or_default()
 	}
 

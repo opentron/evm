@@ -782,4 +782,16 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 
 		Ok(())
 	}
+
+	// TRON
+
+	fn token_balance(&self, address: H160, token_id: U256) -> U256 {
+		println!("calling address={:?} token_id={:?}", address, token_id);
+		self.state
+			.get(&address)
+			.map(|v| &v.basic.token_balance)
+			.and_then(|toks| toks.get(&token_id))
+			.cloned()
+			.unwrap_or(self.backend.basic(address).token_balance.get(&token_id).cloned().unwrap_or_default())
+	}
 }
