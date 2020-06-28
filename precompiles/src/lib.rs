@@ -102,15 +102,31 @@ pub fn tron_precompile(
 		// 0000000000000000000000000000000000000000000000000000000000000006
 		// altBN128Add
 		// alt_bn128 Addition
-		_ if address == H160::from_low_u64_be(6) => unimplemented!(),
+		_ if address == H160::from_low_u64_be(6) => {
+			const COST: usize = 500;
+
+			Some(Ok((ExitSucceed::Returned, unimplemented!(), COST)))
+		}
 		// 0000000000000000000000000000000000000000000000000000000000000007
 		// altBN128Mul
 		// alt_bn128 Scalar Multiplication
-		_ if address == H160::from_low_u64_be(7) => unimplemented!(),
+		_ if address == H160::from_low_u64_be(7) => {
+			const COST: usize = 40000;
+
+			Some(Ok((ExitSucceed::Returned, unimplemented!(), COST)))
+		}
 		// 0000000000000000000000000000000000000000000000000000000000000008
 		// altBN128Pairing: pairing check
 		// alt_bn128 Pairing Checks
-		_ if address == H160::from_low_u64_be(8) => unimplemented!(),
+		_ if address == H160::from_low_u64_be(8) => {
+			const COST: usize = 100000;
+			const PAIR_SIZE: usize = 192;
+
+			let cost = COST + 80000 * (input.len() / PAIR_SIZE);
+
+			Some(Ok((ExitSucceed::Returned, unimplemented!(), cost)))
+
+		}
 		// TRON 3.6 update
 		// 0000000000000000000000000000000000000000000000000000000000000009
 		// batchvalidatesign(bytes32 hash, bytes[] signatures, address[] addresses) returns (bytes32)
