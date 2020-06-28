@@ -2,11 +2,11 @@
 
 use evm_core::{ExitError, ExitSucceed};
 
+use digest::Digest;
 use primitive_types::{H160, H256, U256};
-use ripemd160::Ripemd160;
 use secp256k1::{Message, RecoveryId, Signature};
-use sha3::{Digest, Keccak256};
 use sha2::Sha256;
+use sha3::Keccak256;
 use std::convert::TryInto;
 
 pub fn tron_precompile(
@@ -25,21 +25,42 @@ pub fn tron_precompile(
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000002
 		// sha256(...) returns (bytes32)
-		_ if address == H160::from_low_u64_be(2) => unimplemented!(),
+		_ if address == H160::from_low_u64_be(2) => {
+			const COST: usize = 60;
+			let cost = COST + 12 * (input.len() + 31) / 32;
+
+			let mut hasher = Sha256::new();
+			hasher.input(input);
+			let ret = hasher.result().to_vec();
+
+			Some(Ok((ExitSucceed::Returned, ret, cost)))
+		}
 		// 0000000000000000000000000000000000000000000000000000000000000003
 		// ripemd160(...) returns (bytes20)
-		_ if address == H160::from_low_u64_be(3) => unimplemented!(),
+		_ if address == H160::from_low_u64_be(3) => {
+			const COST: usize = 600;
+			let cost = COST + 120 * (input.len() + 31) / 32;
+
+			let mut hasher = Sha256::new();
+			hasher.input(input);
+			let orig = hasher.result().to_vec();
+
+			let mut hasher = Sha256::new();
+			hasher.input(&orig[..20]);
+			let ret = hasher.result().to_vec();
+
+			Some(Ok((ExitSucceed::Returned, ret, cost)))
+		}
 		// 0000000000000000000000000000000000000000000000000000000000000004
 		// identity(...) returns (...)
 		// The Identity function simply returns whatever its input is.
 		_ if address == H160::from_low_u64_be(4) => {
 			const COST: usize = 15;
-			let cost = 3 * (input.len() + 31 / 32);
-			Some(Ok((ExitSucceed::Returned, input.to_vec(), COST + cost)))
+			let cost = COST + 3 * ((input.len() + 31) / 32);
+			Some(Ok((ExitSucceed::Returned, input.to_vec(), cost)))
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000005
-		// modExp:
-		// Modular exponentiation
+		// modExp: modular exponentiation on big numbers
 		_ if address == H160::from_low_u64_be(5) => unimplemented!(),
 		// https://eips.ethereum.org/EIPS/eip-196
 		// 0000000000000000000000000000000000000000000000000000000000000006

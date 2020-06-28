@@ -13,6 +13,8 @@ evm-gasometer = { version = "0.16", path = "../gasometer", default-features = fa
 primitive-types = { version = "0.7", default-features = false, features = ["rlp"] }
 
 libsecp256k1 = { version = "0.3.5", default-features = false, features = ["hmac"] }
-ripemd160 = "0.8"
 sha3 = "0.8"
 sha2 = "0.8"
+digest = "0.8"
+
+hex = "0.4"
