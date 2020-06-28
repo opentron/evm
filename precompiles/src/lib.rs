@@ -8,7 +8,7 @@ use primitive_types::{H160, H256, U256};
 use secp256k1::{Message, RecoveryId, Signature};
 use sha2::Sha256;
 use sha3::Keccak256;
-use std::convert::TryInto;
+use std::convert::{TryInto, TryFrom};
 
 const WORD_SISZE: usize = 32;
 
@@ -65,16 +65,11 @@ pub fn tron_precompile(
 		// 0000000000000000000000000000000000000000000000000000000000000005
 		// modExp: modular exponentiation on big numbers
 		_ if address == H160::from_low_u64_be(5) => {
-			let words: Vec<_> = input.chunks(32).collect();
+			let words: Vec<_> = input.chunks(32).take(3).collect();
 
-			let base_len: i32 = U256::from_big_endian(&words[0]).try_into().unwrap();
-			let base_len = base_len as usize;
-
-			let exp_len: i32 = U256::from_big_endian(&words[1]).try_into().unwrap();
-			let exp_len = exp_len as usize;
-
-			let modulus_len: i32 = U256::from_big_endian(&words[2]).try_into().unwrap();
-			let modulus_len = modulus_len as usize;
+			let base_len = i32::try_from(U256::from_big_endian(&words[0])).unwrap() as usize;
+			let exp_len = i32::try_from(U256::from_big_endian(&words[1])).unwrap() as usize;
+			let modulus_len = i32::try_from(U256::from_big_endian(&words[2])).unwrap() as usize;
 
 			let mut offset = 32 * 3;
 			let base = BigUint::from_bytes_be(&input[offset..offset + base_len]);
