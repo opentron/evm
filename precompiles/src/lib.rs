@@ -3,11 +3,14 @@
 use evm_core::{ExitError, ExitSucceed};
 
 use digest::Digest;
+use num_bigint::BigUint;
 use primitive_types::{H160, H256, U256};
 use secp256k1::{Message, RecoveryId, Signature};
 use sha2::Sha256;
 use sha3::Keccak256;
 use std::convert::TryInto;
+
+const WORD_SISZE: usize = 32;
 
 pub fn tron_precompile(
 	address: H160,
@@ -61,7 +64,45 @@ pub fn tron_precompile(
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000005
 		// modExp: modular exponentiation on big numbers
-		_ if address == H160::from_low_u64_be(5) => unimplemented!(),
+		_ if address == H160::from_low_u64_be(5) => {
+			let words: Vec<_> = input.chunks(32).collect();
+
+			let base_len: i32 = U256::from_big_endian(&words[0]).try_into().unwrap();
+			let base_len = base_len as usize;
+
+			let exp_len: i32 = U256::from_big_endian(&words[1]).try_into().unwrap();
+			let exp_len = exp_len as usize;
+
+			let modulus_len: i32 = U256::from_big_endian(&words[2]).try_into().unwrap();
+			let modulus_len = modulus_len as usize;
+
+			let mut offset = 32 * 3;
+			let base = BigUint::from_bytes_be(&input[offset..offset + base_len]);
+			offset += base_len;
+
+			let exp = BigUint::from_bytes_be(&input[offset..offset + exp_len]);
+			offset += exp_len;
+
+			let modulus = BigUint::from_bytes_be(&input[offset..offset + modulus_len]);
+
+			let cost = 0;
+
+			// println!("!! base = {}, exp = {}, modulus = {}", base, exp, modulus);
+			if modulus == 0.try_into().unwrap() {
+				return Some(Ok((ExitSucceed::Returned, vec![], cost)));
+			}
+
+			let ret = base.modpow(&exp, &modulus).to_bytes_be();
+			let ret_with_leading_zeros = if ret.len() < modulus_len {
+				let mut fixed = vec![0u8; modulus_len - ret.len()];
+				fixed.extend_from_slice(&ret);
+				fixed
+			} else {
+				ret
+			};
+
+			Some(Ok((ExitSucceed::Returned, ret_with_leading_zeros, cost)))
+		}
 		// https://eips.ethereum.org/EIPS/eip-196
 		// 0000000000000000000000000000000000000000000000000000000000000006
 		// altBN128Add
@@ -77,11 +118,23 @@ pub fn tron_precompile(
 		_ if address == H160::from_low_u64_be(8) => unimplemented!(),
 		// TRON 3.6 update
 		// 0000000000000000000000000000000000000000000000000000000000000009
-		// batchValidateSign
-		_ if address == H160::from_low_u64_be(9) => unimplemented!(),
+		// batchvalidatesign(bytes32 hash, bytes[] signatures, address[] addresses) returns (bytes32)
+		// batchvalidatesign(bytes32,bytes[],address[])
+		_ if address == H160::from_low_u64_be(9) => {
+			const COST_PER_SIGN: usize = 1500;
+
+			let _cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
+
+			unimplemented!()
+		}
 		// 000000000000000000000000000000000000000000000000000000000000000a
-		// validateMultiSign
-		_ if address == H160::from_low_u64_be(0x0a) => unimplemented!(),
+		// validatemultisign(address addr, uint256 perid, bytes32 hash, bytes[] signatures) returns (bool)
+		_ if address == H160::from_low_u64_be(0x0a) => {
+			const COST_PER_SIGN: usize = 1500;
+			let _cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
+
+			unimplemented!()
+		}
 		// TRON 4.0 update: shielded contracts
 		// 0000000000000000000000000000000000000000000000000000000001000001
 		// 0000000000000000000000000000000000000000000000000000000001000002
