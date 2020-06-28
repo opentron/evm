@@ -46,6 +46,18 @@ fn no_precompile(
 	None
 }
 
+fn tron_precompile(
+	address: H160,
+	_input: &[u8],
+	_target_gas: Option<usize>
+) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>> {
+	println!("precompile....");
+	if address == H160::from_low_u64_be(1) {
+		println!("oh year! calling")
+	}
+	None
+}
+
 impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 	/// Create a new stack-based executor.
 	pub fn new(
@@ -54,6 +66,15 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		config: &'config Config,
 	) -> Self {
 		Self::new_with_precompile(backend, gas_limit, config, no_precompile)
+	}
+
+	/// Create a new stack-based executor with tron precompiles.
+	pub fn new_tron(
+		backend: &'backend B,
+		gas_limit: usize,
+		config: &'config Config,
+	) -> Self {
+		Self::new_with_precompile(backend, gas_limit, config, tron_precompile)
 	}
 
 	/// Create a new stack-based executor with given precompiles.
@@ -218,7 +239,9 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		let context = Context {
 			caller,
 			address,
-			apparent_value: value,
+			call_value: value,
+			call_token_id: U256::from(0),
+			call_token_value: U256::from(0),
 		};
 
 		match self.call_inner(address, Some(Transfer {
@@ -411,7 +434,9 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		let context = Context {
 			address,
 			caller,
-			apparent_value: value,
+			call_value: value,
+			call_token_id: U256::from(0),
+			call_token_value: U256::from(0),
 		};
 		let transfer = Transfer {
 			source: caller,
@@ -693,7 +718,7 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 
 	fn set_storage(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError> {
 		self.account_mut(address).storage.insert(index, value);
-
+		println!("!!!! set_storage");
 		Ok(())
 	}
 

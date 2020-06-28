@@ -67,7 +67,7 @@ pub fn caller<H: Handler>(runtime: &mut Runtime) -> Control<H> {
 
 pub fn callvalue<H: Handler>(runtime: &mut Runtime) -> Control<H> {
 	let mut ret = H256::default();
-	runtime.context.apparent_value.to_big_endian(&mut ret[..]);
+	runtime.context.call_value.to_big_endian(&mut ret[..]);
 	push!(runtime, ret);
 
 	Control::Continue
@@ -335,17 +335,23 @@ pub fn call<'config, H: Handler>(
 		CallScheme::Call | CallScheme::StaticCall => Context {
 			address: to.into(),
 			caller: runtime.context.address,
-			apparent_value: value,
+			call_value: value,
+			call_token_id: U256::from(0),
+			call_token_value: U256::from(0),
 		},
 		CallScheme::CallCode => Context {
 			address: runtime.context.address,
 			caller: runtime.context.address,
-			apparent_value: value,
+			call_value: value,
+			call_token_id: U256::from(0),
+			call_token_value: U256::from(0),
 		},
 		CallScheme::DelegateCall => Context {
 			address: runtime.context.address,
 			caller: runtime.context.caller,
-			apparent_value: runtime.context.apparent_value,
+			call_value: runtime.context.call_value,
+			call_token_id: U256::from(0),
+			call_token_value: U256::from(0),
 		},
 	};
 
@@ -417,4 +423,22 @@ pub fn call<'config, H: Handler>(
 			Control::CallInterrupt(interrupt)
 		},
 	}
+}
+
+// TODO
+pub fn calltokenid<H: Handler>(runtime: &mut Runtime) -> Control<H> {
+	let mut ret = H256::default();
+	runtime.context.call_token_id.to_big_endian(&mut ret[..]);
+	push!(runtime, ret);
+
+
+	Control::Continue
+}
+
+pub fn calltokenvalue<H: Handler>(runtime: &mut Runtime) -> Control<H> {
+	let mut ret = H256::default();
+	runtime.context.call_token_value.to_big_endian(&mut ret[..]);
+	push!(runtime, ret);
+
+	Control::Continue
 }

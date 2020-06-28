@@ -247,9 +247,11 @@ pub fn opcode_cost<H: Handler>(
 		Ok(Opcode::Add) | Ok(Opcode::Sub) | Ok(Opcode::Not) | Ok(Opcode::Lt) |
 		Ok(Opcode::Gt) | Ok(Opcode::SLt) | Ok(Opcode::SGt) | Ok(Opcode::Eq) |
 		Ok(Opcode::IsZero) | Ok(Opcode::And) | Ok(Opcode::Or) | Ok(Opcode::Xor) |
-		Ok(Opcode::Byte) | Ok(Opcode::CallDataLoad) | Ok(Opcode::MLoad) |
-		Ok(Opcode::MStore) | Ok(Opcode::MStore8) | Ok(Opcode::Push(_)) |
+		Ok(Opcode::Byte) | Ok(Opcode::CallDataLoad) | Ok(Opcode::Push(_)) |
 		Ok(Opcode::Dup(_)) | Ok(Opcode::Swap(_)) => GasCost::VeryLow,
+
+		// TRON: tire energy = 0
+		Ok(Opcode::MLoad) | Ok(Opcode::MStore) | Ok(Opcode::MStore8) => GasCost::Zero,
 
 		Ok(Opcode::Shl) | Ok(Opcode::Shr) | Ok(Opcode::Sar) if config.has_bitwise_shifting =>
 			GasCost::VeryLow,
@@ -287,6 +289,7 @@ pub fn opcode_cost<H: Handler>(
 		Err(ExternalOpcode::ExtCodeCopy) => GasCost::ExtCodeCopy {
 			len: U256::from_big_endian(&stack.peek(3)?[..]),
 		},
+		// TRON: tire energy = 0, has copy energy
 		Ok(Opcode::CallDataCopy) | Ok(Opcode::CodeCopy) => GasCost::VeryLowCopy {
 			len: U256::from_big_endian(&stack.peek(2)?[..]),
 		},
@@ -341,6 +344,13 @@ pub fn opcode_cost<H: Handler>(
 			},
 
 		Ok(Opcode::Invalid) => GasCost::Invalid,
+
+		// TVM
+		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId) =>
+			GasCost::Base,
+		Err(ExternalOpcode::IsContract) => GasCost::Balance,
+		Err(ExternalOpcode::CallToken) => unimplemented!(),
+		Err(ExternalOpcode::TokenBalance) => GasCost::Balance,
 
 		Err(ExternalOpcode::Create) | Err(ExternalOpcode::Create2) |
 		Err(ExternalOpcode::SStore) | Err(ExternalOpcode::Log(_)) |

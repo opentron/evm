@@ -88,6 +88,7 @@ impl<'vicinity> Backend for MemoryBackend<'vicinity> {
 	fn chain_id(&self) -> U256 { self.vicinity.chain_id }
 
 	fn exists(&self, address: H160) -> bool {
+		println!("!!! ex address {:?} {}", address, self.state.contains_key(&address));
 		self.state.contains_key(&address)
 	}
 
@@ -108,10 +109,12 @@ impl<'vicinity> Backend for MemoryBackend<'vicinity> {
 	}
 
 	fn code(&self, address: H160) -> Vec<u8> {
+		println!("!!! fetch code {:?}", address);
 		self.state.get(&address).map(|v| v.code.clone()).unwrap_or_default()
 	}
 
 	fn storage(&self, address: H160, index: H256) -> H256 {
+		println!("!!!! storage {:?} {:?}", address, index);
 		self.state.get(&address)
 			.map(|v| v.storage.get(&index).cloned().unwrap_or(H256::default()))
 			.unwrap_or(H256::default())

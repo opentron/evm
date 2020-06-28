@@ -96,20 +96,19 @@ pub fn verylowcopy_cost(len: U256) -> Result<usize, ExitError> {
 	let wordd = len / U256::from(32);
 	let wordr = len % U256::from(32);
 
-	let gas = U256::from(G_VERYLOW).checked_add(
-		U256::from(G_COPY).checked_mul(
-			if wordr == U256::zero() {
-				wordd
-			} else {
-				wordd + U256::one()
-			}
-		).ok_or(ExitError::OutOfGas)?
+	// TRON: remove basic lowcost = G_VERYLOW
+	let gas = U256::from(G_COPY).checked_mul(
+		if wordr == U256::zero() {
+			wordd
+		} else {
+			wordd + U256::one()
+		}
 	).ok_or(ExitError::OutOfGas)?;
 
 	if gas > U256::from(usize::max_value()) {
 		return Err(ExitError::OutOfGas)
 	}
-
+	println!("gas => {}", gas);
 	Ok(gas.as_usize())
 }
 

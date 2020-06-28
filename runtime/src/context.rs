@@ -42,5 +42,9 @@ pub struct Context {
 	/// Caller of the EVM.
 	pub caller: H160,
 	/// Apparent value of the EVM.
-	pub apparent_value: U256,
+	pub call_value: U256,
+	/// Call token id
+	pub call_token_id: U256,
+	/// Call token value
+	pub call_token_value: U256,
 }

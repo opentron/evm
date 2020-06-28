@@ -43,7 +43,17 @@ pub fn eval<H: Handler>(state: &mut Runtime, opcode: ExternalOpcode, handler: &m
 		ExternalOpcode::CallCode => system::call(state, CallScheme::CallCode, handler),
 		ExternalOpcode::DelegateCall => system::call(state, CallScheme::DelegateCall, handler),
 		ExternalOpcode::StaticCall => system::call(state, CallScheme::StaticCall, handler),
+
+		// Not supported
 		ExternalOpcode::ChainId => system::chainid(state, handler),
+
+		// call with TRC10 token
+		ExternalOpcode::CallTokenId => system::calltokenid(state),
+		ExternalOpcode::CallTokenValue => system::calltokenvalue(state),
+		ExternalOpcode::CallToken => unimplemented!(),
+		ExternalOpcode::TokenBalance => unimplemented!(),
+		ExternalOpcode::IsContract => unimplemented!(),
+
 		ExternalOpcode::Other(opcode) => {
 			match handler.other(
 				opcode,

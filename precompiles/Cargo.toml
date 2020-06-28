@@ -1,0 +1,18 @@
+[package]
+name = "precompiles"
+version = "3.7.0"
+authors = ["andelf <andelf@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+evm-core = { version = "0.16", path = "../core", default-features = false }
+evm-gasometer = { version = "0.16", path = "../gasometer", default-features = false }
+
+primitive-types = { version = "0.7", default-features = false, features = ["rlp"] }
+
+libsecp256k1 = { version = "0.3.5", default-features = false, features = ["hmac"] }
+ripemd160 = "0.8"
+sha3 = "0.8"
+sha2 = "0.8"

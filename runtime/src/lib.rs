@@ -1,6 +1,6 @@
 //! Runtime layer for EVM.
 
-#![deny(warnings)]
+// #![deny(warnings)]
 #![forbid(unsafe_code, missing_docs, unused_variables, unused_imports)]
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -24,6 +24,8 @@ use alloc::rc::Rc;
 macro_rules! step {
 	( $self:expr, $handler:expr, $return:tt $($err:path)?; $($ok:path)? ) => ({
 		if let Some((opcode, stack)) = $self.machine.inspect() {
+			// println!("S: {:?}", stack);
+			// println!("   {:?}", opcode);
 			match $handler.pre_validate(&$self.context, opcode, stack) {
 				Ok(()) => (),
 				Err(e) => {
@@ -198,9 +200,52 @@ pub struct Config {
 	pub has_self_balance: bool,
 	/// Has ext code hash.
 	pub has_ext_code_hash: bool,
+	/// Has multi validate
+	/// Has shielded
+	pub has_shielded: bool,
 }
 
 impl Config {
+	/// TRON configuration
+	pub const fn odyssey_3_7() -> Config {
+		Config {
+			gas_ext_code: 20,
+			gas_ext_code_hash: 20,
+			gas_balance: 20,
+			gas_sload: 50,
+			gas_sstore_set: 20000,
+			gas_sstore_reset: 5000,
+			refund_sstore_clears: 15000,
+			gas_suicide: 0,
+			gas_suicide_new_account: 0,
+			gas_call: 40,
+			gas_expbyte: 10,
+			gas_transaction_create: 21000,
+			gas_transaction_call: 21000,
+			gas_transaction_zero_data: 4,
+			gas_transaction_non_zero_data: 68,
+			sstore_gas_metering: false,
+			sstore_revert_under_stipend: false,
+			err_on_call_with_more_gas: false,
+			empty_considered_exists: true,
+			create_increase_nonce: false,
+			call_l64_after_gas: false,
+			stack_limit: 1024,
+			memory_limit: usize::max_value(),
+			call_stack_limit: 1024,
+			create_contract_limit: None,
+			call_stipend: 2300,
+			has_delegate_call: true,
+			has_create2: true,
+			has_revert: true,
+			has_return_data: true,
+			has_bitwise_shifting: true,
+			has_chain_id: false,
+			has_self_balance: false,
+			has_ext_code_hash: true,
+			has_shielded: false,
+		}
+	}
 	/// Frontier hard fork configuration.
 	pub const fn frontier() -> Config {
 		Config {
@@ -238,6 +283,7 @@ impl Config {
 			has_chain_id: false,
 			has_self_balance: false,
 			has_ext_code_hash: false,
+			has_shielded: false,
 		}
 	}
 
@@ -278,6 +324,7 @@ impl Config {
 			has_chain_id: true,
 			has_self_balance: true,
 			has_ext_code_hash: true,
+			has_shielded: false,
 		}
 	}
 }
