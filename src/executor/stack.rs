@@ -247,7 +247,9 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		match self.call_inner(address, Some(Transfer {
 			source: caller,
 			target: address,
-			value
+			value,
+			token_id: U256::from(0),
+			token_value: U256::from(0),
 		}), data, Some(gas_limit), false, false, false, context) {
 			Capture::Exit((s, _)) => s,
 			Capture::Trap(_) => unreachable!(),
@@ -323,17 +325,39 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		Ok(())
 	}
 
+	/// Withdraw token balance from address.
+	pub fn withdraw_token(&mut self, address: H160, token_id: U256, amount: U256) -> Result<(), ExitError> {
+		let source = self.account_mut(address);
+		if source.basic.token_balance.get(&token_id).map(|&balance| balance < amount).unwrap_or(true) {
+			return Err(ExitError::OutOfFund.into())
+		}
+		*source.basic.token_balance.entry(token_id).or_insert(U256::zero()) -= amount;
+
+		Ok(())
+	}
+
 	/// Deposit balance to address.
 	pub fn deposit(&mut self, address: H160, balance: U256) {
 		let target = self.account_mut(address);
 		target.basic.balance += balance;
 	}
 
+	/// Deposit token balance to address.
+	pub fn deposit_token(&mut self, address: H160, token_id: U256, amount: U256) {
+		let target = self.account_mut(address);
+		*target.basic.token_balance.entry(token_id).or_insert(U256::zero()) += amount;
+	}
+
 	/// Transfer balance with the given struct.
 	pub fn transfer(&mut self, transfer: Transfer) -> Result<(), ExitError> {
-		self.withdraw(transfer.source, transfer.value)?;
-		self.deposit(transfer.target, transfer.value);
-
+		println!("transfer .... {:?}", transfer);
+		if transfer.value > U256::zero() {
+			self.withdraw(transfer.source, transfer.value)?;
+			self.deposit(transfer.target, transfer.value);
+		} else if transfer.token_value > U256::zero() {
+			self.withdraw_token(transfer.source, transfer.token_id, transfer.token_value)?;
+			self.deposit_token(transfer.target, transfer.token_id, transfer.token_value);
+		}
 		Ok(())
 	}
 
@@ -442,6 +466,8 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			source: caller,
 			target: address,
 			value,
+			token_id: U256::from(0),
+			token_value: U256::from(0),
 		};
 		match substate.transfer(transfer) {
 			Ok(()) => (),
@@ -736,9 +762,11 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 		self.transfer(Transfer {
 			source: address,
 			target: target,
-			value: balance
+			value: balance,
+			..Default::default()
 		})?;
 		self.account_mut(address).basic.balance = U256::zero();
+		// TODO: cleanup TRC10 assets
 
 		self.deleted.insert(address);
 

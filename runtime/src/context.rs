@@ -32,10 +32,12 @@ pub enum CallScheme {
 	DelegateCall,
 	/// `STATICCALL`
 	StaticCall,
+	/// `CALLTOKEN`
+	CallToken,
 }
 
 /// Context of the runtime.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Context {
 	/// Execution address.
 	pub address: H160,

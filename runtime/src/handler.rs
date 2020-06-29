@@ -4,7 +4,7 @@ use crate::{Capture, Stack, ExitError, Opcode, ExternalOpcode,
 			CreateScheme, Context, Machine, ExitReason};
 
 /// Transfer from source to target, with given value.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Transfer {
 	/// Source address.
 	pub source: H160,
@@ -12,6 +12,10 @@ pub struct Transfer {
 	pub target: H160,
 	/// Transfer value.
 	pub value: U256,
+	/// Transfer token id.
+	pub token_id: U256,
+	/// Transfer token value.
+	pub token_value: U256,
 }
 
 /// EVM context handler.

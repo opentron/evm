@@ -50,7 +50,7 @@ pub fn eval<H: Handler>(state: &mut Runtime, opcode: ExternalOpcode, handler: &m
 		// call with TRC10 token
 		ExternalOpcode::CallTokenId => system::calltokenid(state),
 		ExternalOpcode::CallTokenValue => system::calltokenvalue(state),
-		ExternalOpcode::CallToken => unimplemented!(),
+		ExternalOpcode::CallToken => system::call(state, CallScheme::CallToken, handler),
 		ExternalOpcode::TokenBalance => system::tokenbalance(state, handler),
 		ExternalOpcode::IsContract => unimplemented!(),
 

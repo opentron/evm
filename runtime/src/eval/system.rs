@@ -307,15 +307,22 @@ pub fn call<'config, H: Handler>(
 		Some(gas.as_usize())
 	};
 
-	let value = match scheme {
+	let (value, token_id, token_value) = match scheme {
 		CallScheme::Call | CallScheme::CallCode => {
 			pop_u256!(runtime, value);
-			value
+			(value, U256::zero(), U256::zero())
 		},
 		CallScheme::DelegateCall | CallScheme::StaticCall => {
-			U256::zero()
+			(U256::zero(), U256::zero(), U256::zero())
 		},
+		CallScheme::CallToken => {
+			pop_u256!(runtime, token_value);
+			pop_u256!(runtime, token_id);
+			(U256::zero(), token_id, token_value)
+		}
 	};
+
+	println!("value={:?} token_id={:?} token_value={:?}", value, token_id, token_value);
 
 	pop_u256!(runtime, in_offset, in_len, out_offset, out_len);
 
@@ -339,6 +346,13 @@ pub fn call<'config, H: Handler>(
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
 		},
+		CallScheme::CallToken => Context {
+			address: to.into(),
+			caller: runtime.context.address,
+			call_value: value,
+			call_token_id: token_id,
+			call_token_value: token_value,
+		},
 		CallScheme::CallCode => Context {
 			address: runtime.context.address,
 			caller: runtime.context.address,
@@ -359,13 +373,25 @@ pub fn call<'config, H: Handler>(
 		Some(Transfer {
 			source: runtime.context.address,
 			target: to.into(),
-			value: value.into()
+			value: value.into(),
+			token_id: U256::from(0),
+			token_value: U256::from(0),
 		})
 	} else if scheme == CallScheme::CallCode {
 		Some(Transfer {
 			source: runtime.context.address,
 			target: runtime.context.address,
-			value: value.into()
+			value: value.into(),
+			token_id: U256::from(0),
+			token_value: U256::from(0),
+		})
+	} else if scheme == CallScheme::CallToken {
+		Some(Transfer {
+			source: runtime.context.address,
+			target: to.into(),
+			value: U256::from(0),
+			token_id,
+			token_value,
 		})
 	} else {
 		None

@@ -349,7 +349,10 @@ pub fn opcode_cost<H: Handler>(
 		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId) =>
 			GasCost::Base,
 		Err(ExternalOpcode::IsContract) => GasCost::Balance,
-		Err(ExternalOpcode::CallToken) => unimplemented!(),
+		Err(ExternalOpcode::CallToken) => {
+			println!("todo: cas cost for call token");
+			GasCost::Zero
+		},
 		Err(ExternalOpcode::TokenBalance) => GasCost::Balance,
 
 		Err(ExternalOpcode::Create) | Err(ExternalOpcode::Create2) |
