@@ -19,7 +19,7 @@ serde = { version = "1.0", default-features = false, features = ["derive"], opti
 
 # [dev-dependencies]
 hex = "0.4"
-precompiles = { version = "3.7", path = "precompiles" }
+precompiled = { version = "3.7", path = "precompiled" }
 
 [features]
 default = ["std"]
@@ -31,5 +31,5 @@ members = [
   "core",
   "gasometer",
   "runtime",
-  "precompiles"
+  "precompiled"
 ]

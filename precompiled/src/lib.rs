@@ -11,6 +11,8 @@ use sha2::Sha256;
 use sha3::Keccak256;
 use std::convert::{TryInto, TryFrom};
 
+mod alt_bn128;
+
 const WORD_SISZE: usize = 32;
 
 pub fn tron_precompile(
@@ -101,31 +103,31 @@ pub fn tron_precompile(
 		}
 		// https://eips.ethereum.org/EIPS/eip-196
 		// 0000000000000000000000000000000000000000000000000000000000000006
-		// altBN128Add
-		// alt_bn128 Addition
+		// altBN128Add: alt_bn128 Addition
 		_ if address == H160::from_low_u64_be(6) => {
 			const COST: usize = 500;
 
-			Some(Ok((ExitSucceed::Returned, unimplemented!(), COST)))
+			let ret = alt_bn128::ecadd(input).unwrap_or_default();
+			Some(Ok((ExitSucceed::Returned, ret, COST)))
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000007
-		// altBN128Mul
-		// alt_bn128 Scalar Multiplication
+		// altBN128Mul: alt_bn128 Scalar Multiplication
 		_ if address == H160::from_low_u64_be(7) => {
 			const COST: usize = 40000;
 
-			Some(Ok((ExitSucceed::Returned, unimplemented!(), COST)))
+			let ret = alt_bn128::ecmul(input).unwrap_or_default();
+			Some(Ok((ExitSucceed::Returned, ret, COST)))
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000008
 		// altBN128Pairing: pairing check
-		// alt_bn128 Pairing Checks
 		_ if address == H160::from_low_u64_be(8) => {
 			const COST: usize = 100000;
 			const PAIR_SIZE: usize = 192;
 
 			let cost = COST + 80000 * (input.len() / PAIR_SIZE);
+			let ret = alt_bn128::ecpairing(input).unwrap_or_default();
 
-			Some(Ok((ExitSucceed::Returned, unimplemented!(), cost)))
+			Some(Ok((ExitSucceed::Returned, ret, cost)))
 
 		}
 		// TRON 3.6 update
