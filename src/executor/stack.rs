@@ -766,7 +766,23 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 			..Default::default()
 		})?;
 		self.account_mut(address).basic.balance = U256::zero();
-		// TODO: cleanup TRC10 assets
+
+		let token_transfers = self.account_mut(address).basic.token_balance.iter()
+			.filter(|(_, &val)| val > U256::zero())
+			.map(|(&token_id, &token_value)| {
+				Transfer {
+					source: address,
+					target: target,
+					token_id: token_id,
+					token_value: token_value,
+					..Default::default()
+				}
+			})
+			.collect::<Vec<_>>();
+		for token_transfer in token_transfers {
+			self.transfer(token_transfer)?;
+		}
+		self.account_mut(address).basic.token_balance.clear();
 
 		self.deleted.insert(address);
 
