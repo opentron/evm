@@ -477,3 +477,12 @@ pub fn tokenbalance<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H
 
 	Control::Continue
 }
+
+pub fn iscontract<H: Handler>(runtime: &mut Runtime) -> Control<H> {
+	pop!(runtime, _address);
+	// TODO: impl address type
+	let is_contract = false;
+	push!(runtime, H256::from_low_u64_be(is_contract as _));
+
+	Control::Continue
+}

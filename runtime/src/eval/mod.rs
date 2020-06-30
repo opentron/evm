@@ -52,7 +52,7 @@ pub fn eval<H: Handler>(state: &mut Runtime, opcode: ExternalOpcode, handler: &m
 		ExternalOpcode::CallTokenValue => system::calltokenvalue(state),
 		ExternalOpcode::CallToken => system::call(state, CallScheme::CallToken, handler),
 		ExternalOpcode::TokenBalance => system::tokenbalance(state, handler),
-		ExternalOpcode::IsContract => unimplemented!(),
+		ExternalOpcode::IsContract => system::iscontract(state),
 
 		ExternalOpcode::Other(opcode) => {
 			match handler.other(
