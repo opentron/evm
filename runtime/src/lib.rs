@@ -25,7 +25,7 @@ macro_rules! step {
 	( $self:expr, $handler:expr, $return:tt $($err:path)?; $($ok:path)? ) => ({
 		if let Some((opcode, stack)) = $self.machine.inspect() {
 			// println!("S: {:?}", stack);
-			// println!("   {:?}", opcode);
+			// println!("   {:?}", opcode); // $self.machine.position.unwrap_or_default()
 			match $handler.pre_validate(&$self.context, opcode, stack) {
 				Ok(()) => (),
 				Err(e) => {
@@ -200,8 +200,9 @@ pub struct Config {
 	pub has_self_balance: bool,
 	/// Has ext code hash.
 	pub has_ext_code_hash: bool,
-	/// Has multi validate
-	/// Has shielded
+	/// Has validate signature precompile.
+	pub hash_validate_signature: bool,
+	/// Has shielded zksnark precompiles.
 	pub has_shielded: bool,
 }
 
@@ -227,7 +228,7 @@ impl Config {
 			sstore_gas_metering: false,
 			sstore_revert_under_stipend: false,
 			err_on_call_with_more_gas: false,
-			empty_considered_exists: true,
+			empty_considered_exists: false,
 			create_increase_nonce: false,
 			call_l64_after_gas: false,
 			stack_limit: 1024,
@@ -243,6 +244,7 @@ impl Config {
 			has_chain_id: false,
 			has_self_balance: false,
 			has_ext_code_hash: true,
+			hash_validate_signature: true,
 			has_shielded: false,
 		}
 	}
@@ -283,6 +285,7 @@ impl Config {
 			has_chain_id: false,
 			has_self_balance: false,
 			has_ext_code_hash: false,
+			hash_validate_signature: false,
 			has_shielded: false,
 		}
 	}
@@ -324,6 +327,7 @@ impl Config {
 			has_chain_id: true,
 			has_self_balance: true,
 			has_ext_code_hash: true,
+			hash_validate_signature: false,
 			has_shielded: false,
 		}
 	}
