@@ -334,7 +334,7 @@ pub fn opcode_cost<H: Handler>(
 			target_exists: handler.exists(stack.peek(0)?.into()),
 			already_removed: handler.deleted(address),
 		},
-		Err(ExternalOpcode::Call)
+		Err(ExternalOpcode::Call) | Err(ExternalOpcode::CallToken)
 			if !is_static ||
 			(is_static && U256::from_big_endian(&stack.peek(2)?[..]) == U256::zero()) =>
 			GasCost::Call {
@@ -349,15 +349,12 @@ pub fn opcode_cost<H: Handler>(
 		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId) =>
 			GasCost::Base,
 		Err(ExternalOpcode::IsContract) => GasCost::Balance,
-		Err(ExternalOpcode::CallToken) => {
-			println!("todo: cas cost for call token");
-			GasCost::Zero
-		},
 		Err(ExternalOpcode::TokenBalance) => GasCost::Balance,
 
 		Err(ExternalOpcode::Create) | Err(ExternalOpcode::Create2) |
 		Err(ExternalOpcode::SStore) | Err(ExternalOpcode::Log(_)) |
 		Err(ExternalOpcode::Suicide) | Err(ExternalOpcode::Call) |
+		Err(ExternalOpcode::CallToken) |
 
 		Err(ExternalOpcode::Other(_)) => GasCost::Invalid,
 	};

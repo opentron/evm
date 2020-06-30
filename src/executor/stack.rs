@@ -567,7 +567,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		try_or_fail!(self.gasometer.record_cost(gas_limit));
 
 		if let Some(transfer) = transfer.as_ref() {
-			if take_stipend && transfer.value != U256::zero() {
+			if take_stipend && (transfer.value != U256::zero() || transfer.token_value != U256::zero()) {
 				gas_limit = gas_limit.saturating_add(self.config.call_stipend);
 			}
 		}
