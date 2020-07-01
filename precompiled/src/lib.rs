@@ -83,9 +83,17 @@ pub fn tron_precompile(
 
 			let modulus = BigUint::from_bytes_be(&input[offset..offset + modulus_len]);
 
-			let cost = 0;
+			let max_len = base_len.max(modulus_len);
+			let mul_complexity = if max_len <= 64 {
+				max_len.pow(2)
+			} else if max_len <= 1024 {
+				max_len.pow(2) / 4 + 96 * max_len - 3072
+			} else {
+				max_len.pow(2) / 16 + 480 * max_len - 199680
+			};
+			let adj_exp_len = exp.bits() as usize;
+			let cost = mul_complexity * adj_exp_len.max(1) / 20;
 
-			// println!("!! base = {}, exp = {}, modulus = {}", base, exp, modulus);
 			if modulus == BigUint::zero() {
 				return Some(Ok((ExitSucceed::Returned, vec![], cost)));
 			}
