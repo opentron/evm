@@ -12,6 +12,8 @@ use sha3::Keccak256;
 use std::convert::{TryInto, TryFrom};
 
 mod alt_bn128;
+mod tron;
+// mod ztron;
 
 const WORD_SISZE: usize = 32;
 
@@ -66,7 +68,7 @@ pub fn tron_precompile(
 			Some(Ok((ExitSucceed::Returned, input.to_vec(), cost)))
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000005
-		// modExp: modular exponentiation on big numbers
+		// modexp: modular exponentiation on big numbers
 		_ if address == H160::from_low_u64_be(5) => {
 			let words: Vec<_> = input.chunks(32).take(3).collect();
 
@@ -109,7 +111,6 @@ pub fn tron_precompile(
 
 			Some(Ok((ExitSucceed::Returned, ret_with_leading_zeros, cost)))
 		}
-		// https://eips.ethereum.org/EIPS/eip-196
 		// 0000000000000000000000000000000000000000000000000000000000000006
 		// altBN128Add: alt_bn128 Addition
 		_ if address == H160::from_low_u64_be(6) => {
@@ -136,21 +137,21 @@ pub fn tron_precompile(
 			let ret = alt_bn128::ecpairing(input).unwrap_or_default();
 
 			Some(Ok((ExitSucceed::Returned, ret, cost)))
-
 		}
 		// TRON 3.6 update
 		// 0000000000000000000000000000000000000000000000000000000000000009
 		// batchvalidatesign(bytes32 hash, bytes[] signatures, address[] addresses) returns (bytes32)
-		// batchvalidatesign(bytes32,bytes[],address[])
 		_ if address == H160::from_low_u64_be(9) => {
 			const COST_PER_SIGN: usize = 1500;
 
 			let _cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
 
+			// let ret = tron::batchvalidatesign(input).unwrap_or_default();
+			// Some(Ok((ExitSucceed::Returned, ret, cost)))
 			unimplemented!()
 		}
 		// 000000000000000000000000000000000000000000000000000000000000000a
-		// validatemultisign(address addr, uint256 perid, bytes32 hash, bytes[] signatures) returns (bool)
+		// validatemultisign(address addr, uint256 permissionId, bytes32 hash, bytes[] signatures) returns (bool)
 		_ if address == H160::from_low_u64_be(0x0a) => {
 			const COST_PER_SIGN: usize = 1500;
 			let _cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
@@ -158,18 +159,15 @@ pub fn tron_precompile(
 			unimplemented!()
 		}
 		// TRON 4.0 update: shielded contracts
-		// 0000000000000000000000000000000000000000000000000000000001000001
-		// 0000000000000000000000000000000000000000000000000000000001000002
-		// 0000000000000000000000000000000000000000000000000000000001000003
-		// 0000000000000000000000000000000000000000000000000000000001000004
+		// 0000000000000000000000000000000000000000000000000000000001000001 - verifymintproof
+		// 0000000000000000000000000000000000000000000000000000000001000002 - verifytransferproof
+		// 0000000000000000000000000000000000000000000000000000000001000003 - verifyburnproof
+		// 0000000000000000000000000000000000000000000000000000000001000004 - merklehash
 		_ => None,
 	}
 }
 
 fn ecrecover(input: &[u8]) -> Option<H256> {
-	// let hash = H256::from_slice(&input[0..32]);
-	// let r = H256::from_slice(&input[64..96]);
-	// let s = H256::from_slice(&input[96..128]);
 	let v: u8 = U256::from_big_endian(&input[32..64]).try_into().ok()?;
 
 	let msg = Message::parse_slice(&input[0..32]).ok()?;
