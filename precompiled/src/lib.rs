@@ -5,11 +5,9 @@ use evm_core::{ExitError, ExitSucceed};
 use digest::Digest;
 use num_bigint::BigUint;
 use num_traits::Zero;
-use primitive_types::{H160, H256, U256};
-use secp256k1::{Message, RecoveryId, Signature};
+use primitive_types::{H160, U256};
 use sha2::Sha256;
-use sha3::Keccak256;
-use std::convert::{TryInto, TryFrom};
+use std::convert::TryFrom;
 
 mod alt_bn128;
 mod tron;
@@ -28,7 +26,7 @@ pub fn tron_precompile(
 		_ if address == H160::from_low_u64_be(1) => {
 			const COST: usize = 3000;
 			println!("oh year! calling ecrecover");
-			let ret = ecrecover(input).unwrap_or_default();
+			let ret = tron::ecrecover(input).unwrap_or_default();
 			Some(Ok((ExitSucceed::Returned, ret.as_bytes().to_vec(), COST)))
 		}
 		// 0000000000000000000000000000000000000000000000000000000000000002
@@ -144,11 +142,10 @@ pub fn tron_precompile(
 		_ if address == H160::from_low_u64_be(9) => {
 			const COST_PER_SIGN: usize = 1500;
 
-			let _cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
+			let cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
 
-			// let ret = tron::batchvalidatesign(input).unwrap_or_default();
-			// Some(Ok((ExitSucceed::Returned, ret, cost)))
-			unimplemented!()
+			let ret = tron::batchvalidatesign(input).unwrap_or_default();
+			Some(Ok((ExitSucceed::Returned, ret, cost)))
 		}
 		// 000000000000000000000000000000000000000000000000000000000000000a
 		// validatemultisign(address addr, uint256 permissionId, bytes32 hash, bytes[] signatures) returns (bool)
@@ -165,24 +162,4 @@ pub fn tron_precompile(
 		// 0000000000000000000000000000000000000000000000000000000001000004 - merklehash
 		_ => None,
 	}
-}
-
-fn ecrecover(input: &[u8]) -> Option<H256> {
-	let v: u8 = U256::from_big_endian(&input[32..64]).try_into().ok()?;
-
-	let msg = Message::parse_slice(&input[0..32]).ok()?;
-	let sig = Signature::parse_slice(&input[64..128]).ok()?;
-	// TRON: rec_id fix is same as EVM
-	let rec_id = RecoveryId::parse(v.wrapping_sub(27)).ok()?;
-
-	let pub_key = secp256k1::recover(&msg, &sig, &rec_id).ok()?;
-	let raw_pub_key = pub_key.serialize();
-
-	let mut hasher = Keccak256::new();
-	hasher.input(&raw_pub_key[1..]); // skip [0], type byte
-	let digest = hasher.result();
-
-	let mut ret = H256::zero();
-	ret.as_bytes_mut()[12..32].copy_from_slice(&digest[digest.len() - 20..]);
-	Some(ret)
 }
