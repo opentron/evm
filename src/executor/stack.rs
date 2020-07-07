@@ -227,11 +227,11 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		value: U256,
 		data: Vec<u8>,
 		gas_limit: usize,
-	) -> ExitReason {
+	) -> (ExitReason, Vec<u8>) {
 		let transaction_cost = gasometer::call_transaction_cost(&data);
 		match self.gasometer.record_transaction(transaction_cost) {
 			Ok(()) => (),
-			Err(e) => return e.into(),
+			Err(e) => return (e.into(), Vec::new()),
 		}
 
 		self.account_mut(caller).basic.nonce += U256::one();
@@ -251,9 +251,17 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			token_id: U256::from(0),
 			token_value: U256::from(0),
 		}), data, Some(gas_limit), false, false, false, context) {
-			Capture::Exit((s, _)) => s,
+			Capture::Exit((s, v)) => (s, v),
 			Capture::Trap(_) => unreachable!(),
 		}
+	}
+
+	/// Get used gas for the current executor, given the price.
+	pub fn used_gas(
+		&self,
+	) -> usize {
+		self.gasometer.total_used_gas() -
+			min(self.gasometer.total_used_gas() / 2, self.gasometer.refunded_gas() as usize)
 	}
 
 	/// Get fee needed for the current executor, given the price.
@@ -261,8 +269,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		&self,
 		price: U256,
 	) -> U256 {
-		let used_gas = self.gasometer.total_used_gas() -
-			min(self.gasometer.total_used_gas() / 2, self.gasometer.refunded_gas() as usize);
+		let used_gas = self.used_gas();
 		U256::from(used_gas) * price
 	}
 
