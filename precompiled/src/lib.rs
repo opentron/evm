@@ -151,9 +151,15 @@ pub fn tron_precompile(
 		// validatemultisign(address addr, uint256 permissionId, bytes32 hash, bytes[] signatures) returns (bool)
 		_ if address == H160::from_low_u64_be(0x0a) => {
 			const COST_PER_SIGN: usize = 1500;
-			let _cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
+			let cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
 
-			unimplemented!()
+			let validated = tron::validatemultisign(input).unwrap_or(false);
+			let encoded = U256::from(validated as u8);
+
+			let mut ret = vec![0u8; 32];
+			encoded.to_big_endian(&mut ret[..]);
+
+			Some(Ok((ExitSucceed::Returned, ret, cost)))
 		}
 		// TRON 4.0 update: shielded contracts
 		// 0000000000000000000000000000000000000000000000000000000001000001 - verifymintproof

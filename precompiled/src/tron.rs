@@ -43,6 +43,10 @@ impl<'a> AbiArgIterator<'a> {
 		self.next_byte32().map(H256::from_slice)
 	}
 
+	pub fn next_h160(&mut self) -> Option<H160> {
+		self.next_h256().map(From::from)
+	}
+
 	pub fn next_bytes(&mut self) -> Option<&'a [u8]> {
 		let local_offset: usize = self.next_u256()?.try_into().ok()?;
 
@@ -150,6 +154,18 @@ pub fn batchvalidatesign(input: &[u8]) -> Option<Vec<u8>> {
 	}
 
 	Some(ret)
+}
+
+/// validatemultisign(address addr, uint256 permissionId, bytes32 hash, bytes[] signatures) returns (bool)
+pub fn validatemultisign(input: &[u8]) -> Option<bool> {
+	let mut it = AbiArgIterator::new(input);
+
+	let _addr = it.next_h160();
+	let _perm_id = it.next_u256();
+	let _hash = it.next_byte32();
+	let _sigs = it.next_array_of_bytes();
+
+	return Some(true);
 }
 
 #[cfg(test)]
