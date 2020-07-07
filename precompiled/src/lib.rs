@@ -9,11 +9,12 @@ use primitive_types::{H160, U256};
 use sha2::Sha256;
 use std::convert::TryFrom;
 
+pub mod helper;
 mod alt_bn128;
 mod tron;
 // mod ztron;
 
-const WORD_SISZE: usize = 32;
+const WORD_SIZE: usize = 32;
 
 pub fn tron_precompile(
 	address: H160,
@@ -142,7 +143,7 @@ pub fn tron_precompile(
 		_ if address == H160::from_low_u64_be(9) => {
 			const COST_PER_SIGN: usize = 1500;
 
-			let cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
+			let cost = COST_PER_SIGN * (input.len() / WORD_SIZE - 5) / 6;
 
 			let ret = tron::batchvalidatesign(input).unwrap_or_default();
 			Some(Ok((ExitSucceed::Returned, ret, cost)))
@@ -151,7 +152,7 @@ pub fn tron_precompile(
 		// validatemultisign(address addr, uint256 permissionId, bytes32 hash, bytes[] signatures) returns (bool)
 		_ if address == H160::from_low_u64_be(0x0a) => {
 			const COST_PER_SIGN: usize = 1500;
-			let cost = COST_PER_SIGN * (input.len() / WORD_SISZE - 5) / 6;
+			let cost = COST_PER_SIGN * (input.len() / WORD_SIZE - 5) / 6;
 
 			let validated = tron::validatemultisign(input).unwrap_or(false);
 			let encoded = U256::from(validated as u8);
