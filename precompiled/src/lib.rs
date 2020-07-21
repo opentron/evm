@@ -9,10 +9,9 @@ use primitive_types::{H160, U256};
 use sha2::Sha256;
 use std::convert::TryFrom;
 
-pub mod helper;
 mod alt_bn128;
+pub mod helper;
 mod tron;
-// mod ztron;
 
 const WORD_SIZE: usize = 32;
 
@@ -26,7 +25,6 @@ pub fn tron_precompile(
 		// ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address)
 		_ if address == H160::from_low_u64_be(1) => {
 			const COST: usize = 3000;
-			println!("oh year! calling ecrecover");
 			let ret = tron::ecrecover(input).unwrap_or_default();
 			Some(Ok((ExitSucceed::Returned, ret.as_bytes().to_vec(), COST)))
 		}
@@ -162,11 +160,11 @@ pub fn tron_precompile(
 
 			Some(Ok((ExitSucceed::Returned, ret, cost)))
 		}
-		// TRON 4.0 update: shielded contracts
-		// 0000000000000000000000000000000000000000000000000000000001000001 - verifymintproof
-		// 0000000000000000000000000000000000000000000000000000000001000002 - verifytransferproof
-		// 0000000000000000000000000000000000000000000000000000000001000003 - verifyburnproof
-		// 0000000000000000000000000000000000000000000000000000000001000004 - merklehash
+		// TRON 4.0 update: shielded contracts, implemented in ztron.
+		// 0000000000000000000000000000000000000000000000000000000001000001 - verifyMintProof
+		// 0000000000000000000000000000000000000000000000000000000001000002 - verifyTransferProof
+		// 0000000000000000000000000000000000000000000000000000000001000003 - verifyBurnProof
+		// 0000000000000000000000000000000000000000000000000000000001000004 - pedersenHash
 		_ => None,
 	}
 }
