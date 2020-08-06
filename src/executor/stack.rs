@@ -373,7 +373,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		match scheme {
 			CreateScheme::Create2 { caller, code_hash, salt } => {
 				let mut hasher = Keccak256::new();
-				hasher.input(&[0xff]);
+				hasher.input(&[0x41]);
 				hasher.input(&caller[..]);
 				hasher.input(&salt[..]);
 				hasher.input(&code_hash[..]);
