@@ -694,19 +694,19 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 		}).unwrap_or(self.backend.code(address))
 	}
 
-	fn storage(&self, address: H160, index: H256) -> H256 {
+	fn storage(&self, address: H160, index: H256) -> Option<H256> {
 		self.state.get(&address)
 			.and_then(|v| {
 				let s = v.storage.get(&index).cloned();
 
 				if v.reset_storage {
-					Some(s.unwrap_or(H256::default()))
+					Some(s.unwrap_or_default())
 				} else {
 					s
 				}
 
 			})
-			.unwrap_or(self.backend.storage(address, index))
+			.or_else(|| self.backend.storage(address, index))
 	}
 
 	fn original_storage(&self, address: H160, index: H256) -> H256 {
@@ -715,7 +715,7 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 				return H256::default()
 			}
 		}
-		self.backend.storage(address, index)
+		self.backend.storage(address, index).unwrap_or_default()
 	}
 
 	fn exists(&self, address: H160) -> bool {
@@ -751,7 +751,6 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 
 	fn set_storage(&mut self, address: H160, index: H256, value: H256) -> Result<(), ExitError> {
 		self.account_mut(address).storage.insert(index, value);
-		println!("!!!! set_storage");
 		Ok(())
 	}
 
@@ -835,9 +834,7 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 	}
 
 	// TRON
-
 	fn token_balance(&self, address: H160, token_id: U256) -> U256 {
-		println!("calling address={:?} token_id={:?}", address, token_id);
 		self.state
 			.get(&address)
 			.map(|v| &v.basic.token_balance)

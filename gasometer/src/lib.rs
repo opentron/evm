@@ -597,7 +597,7 @@ pub enum GasCost {
 		/// Original value.
 		original: H256,
 		/// Current value.
-		current: H256,
+		current: Option<H256>,
 		/// New value.
 		new: H256
 	},

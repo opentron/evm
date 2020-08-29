@@ -171,7 +171,7 @@ pub fn gaslimit<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H> {
 
 pub fn sload<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H> {
 	pop!(runtime, index);
-	push!(runtime, handler.storage(runtime.context.address, index));
+	push!(runtime, handler.storage(runtime.context.address, index).unwrap_or_default());
 
 	Control::Continue
 }

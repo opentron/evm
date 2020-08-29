@@ -207,7 +207,21 @@ pub struct Config {
 }
 
 impl Config {
-	/// TRON configuration
+	// TRON configuration
+	/// GreatVoyage4_1, under development.
+	pub fn great_voyage_4_1() -> Config {
+		let mut config = Config::great_voyage_4_0_1();
+		config.has_chain_id = true;
+		config.has_self_balance = true;
+		config
+	}
+	/// GreatVoyage4_0_1 hark fork.
+	pub fn great_voyage_4_0_1() -> Config {
+		let mut config = Config::odyssey_3_7();
+		config.has_shielded = true;
+		config
+	}
+	/// Odyssey3_7.
 	pub const fn odyssey_3_7() -> Config {
 		Config {
 			gas_ext_code: 20,

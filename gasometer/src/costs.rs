@@ -19,8 +19,9 @@ pub fn suicide_refund(already_removed: bool) -> isize {
 	}
 }
 
-pub fn sstore_refund(original: H256, current: H256, new: H256, config: &Config) -> isize {
+pub fn sstore_refund(original: H256, current: Option<H256>, new: H256, config: &Config) -> isize {
 	if config.sstore_gas_metering {
+		let current = current.unwrap_or_default();
 		if current == new {
 			0
 		} else {
@@ -48,7 +49,7 @@ pub fn sstore_refund(original: H256, current: H256, new: H256, config: &Config) 
 			}
 		}
 	} else {
-		if current != H256::default() && new == H256::default() {
+		if current.is_some() && new == H256::default() {
 			config.refund_sstore_clears
 		} else {
 			0
@@ -108,7 +109,6 @@ pub fn verylowcopy_cost(len: U256) -> Result<usize, ExitError> {
 	if gas > U256::from(usize::max_value()) {
 		return Err(ExitError::OutOfGas)
 	}
-	println!("gas => {}", gas);
 	Ok(gas.as_usize())
 }
 
@@ -168,14 +168,14 @@ pub fn sha3_cost(len: U256) -> Result<usize, ExitError> {
 	Ok(gas.as_usize())
 }
 
-pub fn sstore_cost(original: H256, current: H256, new: H256, gas: usize, config: &Config) -> Result<usize, ExitError> {
+pub fn sstore_cost(original: H256, current: Option<H256>, new: H256, gas: usize, config: &Config) -> Result<usize, ExitError> {
 	if config.sstore_gas_metering {
 		if config.sstore_revert_under_stipend {
 			if gas < config.call_stipend {
 				return Err(ExitError::OutOfGas)
 			}
 		}
-
+		let current = current.unwrap_or_default();
 		Ok(if new == current {
 			config.gas_sload
 		} else {
@@ -190,7 +190,7 @@ pub fn sstore_cost(original: H256, current: H256, new: H256, gas: usize, config:
 			}
 		})
 	} else {
-		Ok(if current == H256::zero() && new != H256::zero() {
+		Ok(if current.is_none() && new != H256::zero() {
 			config.gas_sstore_set
 		} else {
 			config.gas_sstore_reset
