@@ -20,8 +20,8 @@ pub fn suicide_refund(already_removed: bool) -> isize {
 }
 
 pub fn sstore_refund(original: H256, current: Option<H256>, new: H256, config: &Config) -> isize {
+	let current = current.unwrap_or_default();
 	if config.sstore_gas_metering {
-		let current = current.unwrap_or_default();
 		if current == new {
 			0
 		} else {
@@ -49,7 +49,7 @@ pub fn sstore_refund(original: H256, current: Option<H256>, new: H256, config: &
 			}
 		}
 	} else {
-		if current.is_some() && new == H256::default() {
+		if current != H256::default() && new == H256::default() {
 			config.refund_sstore_clears
 		} else {
 			0
