@@ -7,6 +7,8 @@ pub enum CreateScheme {
 	Legacy {
 		/// Caller of the create.
 		caller: H160,
+		/// Transaction root hash.
+		transaction_root_hash: H256,
 	},
 	/// Create scheme of `CREATE2`.
 	Create2 {
@@ -45,8 +47,10 @@ pub struct Context {
 	pub caller: H160,
 	/// Apparent value of the EVM.
 	pub call_value: U256,
-	/// Call token id
+	/// Call token id.
 	pub call_token_id: U256,
-	/// Call token value
+	/// Call token value.
 	pub call_token_value: U256,
+	/// TRON: Transaction root hash.
+	pub transaction_root_hash: H256,
 }

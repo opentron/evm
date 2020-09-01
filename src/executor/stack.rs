@@ -158,7 +158,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 
 		match self.create_inner(
 			caller,
-			CreateScheme::Legacy { caller },
+			CreateScheme::Legacy { caller, transaction_root_hash: H256::default() }, // ? Not used?
 			value,
 			init_code,
 			Some(gas_limit),
@@ -221,6 +221,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
+			transaction_root_hash: H256::default(),
 		};
 
 		match self.call_inner(address, Some(Transfer {
@@ -358,12 +359,12 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 				hasher.input(&code_hash[..]);
 				H256::from_slice(hasher.result().as_slice()).into()
 			},
-			CreateScheme::Legacy { caller } => {
+			CreateScheme::Legacy { caller, transaction_root_hash } => {
 				let nonce = self.nonce(caller);
-				let mut stream = rlp::RlpStream::new_list(2);
-				stream.append(&caller);
-				stream.append(&nonce);
-				H256::from_slice(Keccak256::digest(&stream.out()).as_slice()).into()
+				let mut hasher = Keccak256::new();
+				hasher.input(transaction_root_hash.as_bytes());
+				hasher.input(&nonce.as_u64().to_be_bytes()[..]);
+				H256::from_slice(hasher.result().as_slice()).into()
 			},
 			CreateScheme::Fixed(naddress) => {
 				naddress
@@ -447,6 +448,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
+			transaction_root_hash: H256::default(),
 		};
 		let transfer = Transfer {
 			source: caller,

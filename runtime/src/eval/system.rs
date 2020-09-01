@@ -258,6 +258,7 @@ pub fn create<H: Handler>(
 	} else {
 		CreateScheme::Legacy {
 			caller: runtime.context.address,
+			transaction_root_hash: runtime.context.transaction_root_hash,
 		}
 	};
 
@@ -265,7 +266,6 @@ pub fn create<H: Handler>(
 		Capture::Exit((reason, address, return_data)) => {
 			runtime.return_data_buffer = return_data;
 			let create_address: H256 = address.map(|a| a.into()).unwrap_or_default();
-
 			match reason {
 				ExitReason::Succeed(_) => {
 					push!(runtime, create_address.into());
@@ -345,6 +345,7 @@ pub fn call<'config, H: Handler>(
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
+			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 		CallScheme::CallToken => Context {
 			address: to.into(),
@@ -352,6 +353,7 @@ pub fn call<'config, H: Handler>(
 			call_value: value,
 			call_token_id: token_id,
 			call_token_value: token_value,
+			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 		CallScheme::CallCode => Context {
 			address: runtime.context.address,
@@ -359,6 +361,7 @@ pub fn call<'config, H: Handler>(
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
+			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 		CallScheme::DelegateCall => Context {
 			address: runtime.context.address,
@@ -366,6 +369,7 @@ pub fn call<'config, H: Handler>(
 			call_value: runtime.context.call_value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
+			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 	};
 
