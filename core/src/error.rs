@@ -78,6 +78,8 @@ pub enum ExitError {
 	InvalidJump,
 	/// An opcode accesses memory region, but the region is invalid.
 	InvalidRange,
+	/// TRON: ILLEGAL_OPERATION
+	IllegalOperation,
 	/// Encountered the designated invalid opcode.
 	DesignatedInvalid,
 	/// Call stack is too deep (runtime).

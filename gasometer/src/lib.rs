@@ -501,7 +501,8 @@ impl<'config> Inner<'config> {
 			GasCost::Low => consts::G_LOW,
 			GasCost::Mid => consts::G_MID,
 			GasCost::High => consts::G_HIGH,
-			GasCost::Invalid => return Err(ExitError::OutOfGas),
+			// TRON: Not an OutOfGas, but an IllegalOperation.
+			GasCost::Invalid => return Err(ExitError::IllegalOperation),
 
 			GasCost::ExtCodeSize => self.config.gas_ext_code,
 			GasCost::Balance => self.config.gas_balance,

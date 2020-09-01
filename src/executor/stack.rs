@@ -46,18 +46,6 @@ fn no_precompile(
 	None
 }
 
-fn tron_precompile(
-	address: H160,
-	_input: &[u8],
-	_target_gas: Option<usize>
-) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>> {
-	println!("precompile....");
-	if address == H160::from_low_u64_be(1) {
-		println!("oh year! calling")
-	}
-	None
-}
-
 impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 	/// Create a new stack-based executor.
 	pub fn new(
@@ -66,15 +54,6 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		config: &'config Config,
 	) -> Self {
 		Self::new_with_precompile(backend, gas_limit, config, no_precompile)
-	}
-
-	/// Create a new stack-based executor with tron precompiles.
-	pub fn new_tron(
-		backend: &'backend B,
-		gas_limit: usize,
-		config: &'config Config,
-	) -> Self {
-		Self::new_with_precompile(backend, gas_limit, config, tron_precompile)
 	}
 
 	/// Create a new stack-based executor with given precompiles.
