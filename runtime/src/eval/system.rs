@@ -225,6 +225,8 @@ pub fn suicide<H: Handler>(runtime: &mut Runtime, handler: &mut H) -> Control<H>
 		Err(e) => return Control::Exit(e.into()),
 	}
 
+	handler.incr_nonce();
+
 	Control::Exit(ExitSucceed::Suicided.into())
 }
 
@@ -250,6 +252,9 @@ pub fn create<H: Handler>(
 	let scheme = if is_create2 {
 		pop!(runtime, salt);
 		let code_hash = H256::from_slice(Keccak256::digest(&code).as_slice());
+		if !runtime._config.has_real_create2 {
+			unimplemented!("TODO: fake CREATE2");
+		}
 		CreateScheme::Create2 {
 			caller: runtime.context.address,
 			salt,
@@ -257,10 +262,12 @@ pub fn create<H: Handler>(
 		}
 	} else {
 		CreateScheme::Legacy {
-			caller: runtime.context.address,
-			transaction_root_hash: runtime.context.transaction_root_hash,
+			nonce: handler.nonce(),
+			transaction_root_hash: handler.transaction_root_hash(),
 		}
 	};
+
+	handler.incr_nonce();
 
 	match handler.create(runtime.context.address, scheme, value, code, None) {
 		Capture::Exit((reason, address, return_data)) => {
@@ -322,8 +329,6 @@ pub fn call<'config, H: Handler>(
 		}
 	};
 
-	println!("value={:?} token_id={:?} token_value={:?}", value, token_id, token_value);
-
 	pop_u256!(runtime, in_offset, in_len, out_offset, out_len);
 
 	try_or_fail!(runtime.machine.memory_mut().resize_offset(in_offset, in_len));
@@ -345,7 +350,6 @@ pub fn call<'config, H: Handler>(
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
-			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 		CallScheme::CallToken => Context {
 			address: to.into(),
@@ -353,7 +357,6 @@ pub fn call<'config, H: Handler>(
 			call_value: value,
 			call_token_id: token_id,
 			call_token_value: token_value,
-			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 		CallScheme::CallCode => Context {
 			address: runtime.context.address,
@@ -361,7 +364,6 @@ pub fn call<'config, H: Handler>(
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
-			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 		CallScheme::DelegateCall => Context {
 			address: runtime.context.address,
@@ -369,7 +371,6 @@ pub fn call<'config, H: Handler>(
 			call_value: runtime.context.call_value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
-			transaction_root_hash: runtime.context.transaction_root_hash,
 		},
 	};
 
@@ -400,6 +401,8 @@ pub fn call<'config, H: Handler>(
 	} else {
 		None
 	};
+
+	handler.incr_nonce();
 
 	match handler.call(to.into(), transfer, input, gas, scheme == CallScheme::StaticCall, context) {
 		Capture::Exit((reason, return_data)) => {
@@ -460,7 +463,6 @@ pub fn calltokenid<H: Handler>(runtime: &mut Runtime) -> Control<H> {
 	let mut ret = H256::default();
 	runtime.context.call_token_id.to_big_endian(&mut ret[..]);
 	push!(runtime, ret);
-
 
 	Control::Continue
 }

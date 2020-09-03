@@ -117,6 +117,8 @@ impl<'vicinity> Backend for MemoryBackend<'vicinity> {
 		self.state.get(&address)
 			.and_then(|v| v.storage.get(&index).cloned())
 	}
+
+	fn transaction_root_hash(&self) -> H256 { H256::default() }
 }
 
 impl<'vicinity> ApplyBackend for MemoryBackend<'vicinity> {

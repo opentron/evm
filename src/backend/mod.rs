@@ -89,6 +89,9 @@ pub trait Backend {
 	fn code(&self, address: H160) -> Vec<u8>;
 	/// Get storage value of address at index.
 	fn storage(&self, address: H160, index: H256) -> Option<H256>;
+
+	/// Transaction root hash.
+	fn transaction_root_hash(&self) -> H256;
 }
 
 /// EVM backend that can apply changes.

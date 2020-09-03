@@ -188,6 +188,8 @@ pub struct Config {
 	pub has_delegate_call: bool,
 	/// Has create2.
 	pub has_create2: bool,
+	/// Has real create2.
+	has_real_create2: bool,
 	/// Has revert.
 	pub has_revert: bool,
 	/// Has return data.
@@ -201,7 +203,7 @@ pub struct Config {
 	/// Has ext code hash.
 	pub has_ext_code_hash: bool,
 	/// Has validate signature precompile.
-	pub hash_validate_signature: bool,
+	pub has_validate_signature: bool,
 	/// Has shielded zksnark precompiles.
 	pub has_shielded: bool,
 }
@@ -243,7 +245,7 @@ impl Config {
 			sstore_revert_under_stipend: false,
 			err_on_call_with_more_gas: false,
 			empty_considered_exists: false,
-			create_increase_nonce: false,
+			create_increase_nonce: true,
 			call_l64_after_gas: false,
 			stack_limit: 1024,
 			memory_limit: usize::max_value(),
@@ -252,13 +254,14 @@ impl Config {
 			call_stipend: 2300,
 			has_delegate_call: true,
 			has_create2: true,
+			has_real_create2: false,
 			has_revert: true,
 			has_return_data: true,
 			has_bitwise_shifting: true,
 			has_chain_id: false,
 			has_self_balance: false,
 			has_ext_code_hash: true,
-			hash_validate_signature: true,
+			has_validate_signature: true,
 			has_shielded: false,
 		}
 	}
@@ -293,13 +296,14 @@ impl Config {
 			call_stipend: 2300,
 			has_delegate_call: false,
 			has_create2: false,
+			has_real_create2: false,
 			has_revert: false,
 			has_return_data: false,
 			has_bitwise_shifting: false,
 			has_chain_id: false,
 			has_self_balance: false,
 			has_ext_code_hash: false,
-			hash_validate_signature: false,
+			has_validate_signature: false,
 			has_shielded: false,
 		}
 	}
@@ -335,13 +339,14 @@ impl Config {
 			call_stipend: 2300,
 			has_delegate_call: true,
 			has_create2: true,
+			has_real_create2: true,
 			has_revert: true,
 			has_return_data: true,
 			has_bitwise_shifting: true,
 			has_chain_id: true,
 			has_self_balance: true,
 			has_ext_code_hash: true,
-			hash_validate_signature: false,
+			has_validate_signature: false,
 			has_shielded: false,
 		}
 	}

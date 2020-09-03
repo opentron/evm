@@ -36,6 +36,7 @@ pub struct StackExecutor<'backend, 'config, B> {
 	precompile: fn(H160, &[u8], Option<usize>) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>>,
 	is_static: bool,
 	depth: Option<usize>,
+	nonce: u64,
 }
 
 fn no_precompile(
@@ -73,6 +74,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			precompile: precompile,
 			is_static: false,
 			depth: None,
+			nonce: 0,
 		}
 	}
 
@@ -84,13 +86,14 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			config: self.config,
 			state: self.state.clone(),
 			deleted: self.deleted.clone(),
-			logs: self.logs.clone(),
+			logs: Vec::new(),
 			precompile: self.precompile,
 			is_static: is_static || self.is_static,
 			depth: match self.depth {
 				None => Some(0),
 				Some(n) => Some(n + 1),
 			},
+			nonce: self.nonce,
 		}
 	}
 
@@ -115,6 +118,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		self.logs.append(&mut substate.logs);
 		self.deleted.append(&mut substate.deleted);
 		self.state = substate.state;
+		self.nonce = substate.nonce;
 
 		self.gasometer.record_stipend(substate.gasometer.gas())?;
 		self.gasometer.record_refund(substate.gasometer.refunded_gas())?;
@@ -127,6 +131,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		mut substate: StackExecutor<'obackend, 'oconfig, OB>
 	) -> Result<(), ExitError> {
 		self.logs.append(&mut substate.logs);
+		self.nonce = substate.nonce;
 
 		self.gasometer.record_stipend(substate.gasometer.gas())?;
 		Ok(())
@@ -138,6 +143,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		mut substate: StackExecutor<'obackend, 'oconfig, OB>
 	) -> Result<(), ExitError> {
 		self.logs.append(&mut substate.logs);
+		self.nonce = substate.nonce;
 
 		Ok(())
 	}
@@ -158,7 +164,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 
 		match self.create_inner(
 			caller,
-			CreateScheme::Legacy { caller, transaction_root_hash: H256::default() }, // ? Not used?
+			CreateScheme::Legacy { nonce: self.nonce, transaction_root_hash: H256::default() },
 			value,
 			init_code,
 			Some(gas_limit),
@@ -221,7 +227,6 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
-			transaction_root_hash: H256::default(),
 		};
 
 		match self.call_inner(address, Some(Transfer {
@@ -337,7 +342,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 
 	/// Transfer balance with the given struct.
 	pub fn transfer(&mut self, transfer: Transfer) -> Result<(), ExitError> {
-		println!("transfer .... {:?}", transfer);
+		println!("!! transfer .... {:?}", transfer);
 		if transfer.value > U256::zero() {
 			self.withdraw(transfer.source, transfer.value)?;
 			self.deposit(transfer.target, transfer.value);
@@ -359,11 +364,10 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 				hasher.input(&code_hash[..]);
 				H256::from_slice(hasher.result().as_slice()).into()
 			},
-			CreateScheme::Legacy { caller, transaction_root_hash } => {
-				let nonce = self.nonce(caller);
+			CreateScheme::Legacy { transaction_root_hash, nonce } => {
 				let mut hasher = Keccak256::new();
 				hasher.input(transaction_root_hash.as_bytes());
-				hasher.input(&nonce.as_u64().to_be_bytes()[..]);
+				hasher.input(&nonce.to_be_bytes()[..]);
 				H256::from_slice(hasher.result().as_slice()).into()
 			},
 			CreateScheme::Fixed(naddress) => {
@@ -448,7 +452,6 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			call_value: value,
 			call_token_id: U256::from(0),
 			call_token_value: U256::from(0),
-			transaction_root_hash: H256::default(),
 		};
 		let transfer = Transfer {
 			source: caller,
@@ -822,5 +825,15 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 			.and_then(|toks| toks.get(&token_id))
 			.cloned()
 			.unwrap_or(self.backend.basic(address).token_balance.get(&token_id).cloned().unwrap_or_default())
+	}
+
+	fn nonce(&self) -> u64 { self.nonce }
+
+	fn incr_nonce(&mut self) {
+		self.nonce += 1;
+	}
+
+	fn transaction_root_hash(&self) -> H256 {
+		self.backend.transaction_root_hash()
 	}
 }

@@ -5,8 +5,8 @@ use primitive_types::{H160, U256, H256};
 pub enum CreateScheme {
 	/// Legacy create scheme of `CREATE`.
 	Legacy {
-		/// Caller of the create.
-		caller: H160,
+		/// Nonce of current transaction.
+		nonce: u64,
 		/// Transaction root hash.
 		transaction_root_hash: H256,
 	},
@@ -51,6 +51,4 @@ pub struct Context {
 	pub call_token_id: U256,
 	/// Call token value.
 	pub call_token_value: U256,
-	/// TRON: Transaction root hash.
-	pub transaction_root_hash: H256,
 }

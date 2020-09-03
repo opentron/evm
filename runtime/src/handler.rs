@@ -129,4 +129,12 @@ pub trait Handler {
 	/// Get token balance of address.
 	fn token_balance(&self, address: H160, token_id: U256) -> U256;
 
+	/// Nonce of current transaction root.
+	fn nonce(&self) -> u64;
+
+	/// Increase nonce.
+	fn incr_nonce(&mut self);
+
+	/// Transaction root hash.
+	fn transaction_root_hash(&self) -> H256;
 }

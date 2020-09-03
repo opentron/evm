@@ -160,8 +160,8 @@ impl Opcode {
 			0x43 => Err(ExternalOpcode::Number),
 			0x44 => Err(ExternalOpcode::Difficulty),
 			0x45 => Err(ExternalOpcode::GasLimit),
-			// 0x46 => Err(ExternalOpcode::ChainId),
-			// 0x47 => Err(ExternalOpcode::SelfBalance),
+			0x46 => Err(ExternalOpcode::ChainId),
+			0x47 => Err(ExternalOpcode::SelfBalance),
 
 			0x50 => Ok(Opcode::Pop),
 			0x51 => Ok(Opcode::MLoad),
