@@ -164,7 +164,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 
 		match self.create_inner(
 			caller,
-			CreateScheme::Legacy { nonce: self.nonce, transaction_root_hash: H256::default() },
+			CreateScheme::Legacy { nonce: self.nonce, transaction_root_hash: self.transaction_root_hash() },
 			value,
 			init_code,
 			Some(gas_limit),
