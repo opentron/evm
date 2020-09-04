@@ -244,7 +244,7 @@ impl Config {
 			sstore_gas_metering: false,
 			sstore_revert_under_stipend: false,
 			err_on_call_with_more_gas: false,
-			empty_considered_exists: false,
+			empty_considered_exists: true,
 			create_increase_nonce: true,
 			call_l64_after_gas: false,
 			stack_limit: 1024,
