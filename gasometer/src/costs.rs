@@ -50,7 +50,8 @@ pub fn sstore_refund(original: H256, current: Option<H256>, new: H256, config: &
 		}
 	} else {
 		if current != H256::default() && new == H256::default() {
-			config.refund_sstore_clears
+			// TRON: No refund at all, `config.refund_sstore_clears` is useless.
+			0
 		} else {
 			0
 		}
