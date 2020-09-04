@@ -679,17 +679,9 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 	}
 
 	fn storage(&self, address: H160, index: H256) -> Option<H256> {
+		// TRON: If return type is Option<H256>, no need to distinguish `v.reset_storage = true` or not.
 		self.state.get(&address)
-			.and_then(|v| {
-				let s = v.storage.get(&index).cloned();
-
-				if v.reset_storage {
-					Some(s.unwrap_or_default())
-				} else {
-					s
-				}
-
-			})
+			.and_then(|v| v.storage.get(&index).cloned())
 			.or_else(|| self.backend.storage(address, index))
 	}
 
