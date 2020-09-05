@@ -88,6 +88,8 @@ pub enum ExitError {
 	CreateCollision,
 	/// Create init code exceeds limit (runtime).
 	CreateContractLimit,
+	/// TRON: TransferException
+	TransferException,
 
 	///	An opcode accesses external information, but the request is off offset
 	///	limit (runtime).

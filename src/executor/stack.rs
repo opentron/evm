@@ -6,7 +6,7 @@ use alloc::collections::{BTreeMap, BTreeSet};
 use primitive_types::{U256, H256, H160};
 use sha3::{Keccak256, Digest};
 use crate::{ExitError, Stack, ExternalOpcode, Opcode, Capture, Handler, Transfer,
-			Context, CreateScheme, Runtime, ExitReason, ExitSucceed, Config};
+			Context, CreateScheme, Runtime, ExitReason, ExitSucceed, ExitFatal, Config};
 use crate::backend::{Log, Basic, Apply, Backend};
 use crate::gasometer::{self, Gasometer};
 
@@ -560,6 +560,16 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		if let Some(transfer) = transfer.as_ref() {
 			if take_stipend && (transfer.value != U256::zero() || transfer.token_value != U256::zero()) {
 				gas_limit = gas_limit.saturating_add(self.config.call_stipend);
+			}
+			// TRON:
+			// 1. Can not handle value greater than u64
+			// 2. Refund more (+2300 call_stipend) than EVM (bug)
+			// 3. Introduce TransferException, a Fatal error
+			if transfer.value > U256::from(u64::max_value()) || transfer.token_value > U256::from(u64::max_value()){
+				let _ = self.gasometer.record_stipend(gas_limit);
+				return Capture::Exit(
+					(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
+				);
 			}
 		}
 
