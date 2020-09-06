@@ -566,7 +566,16 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			// 1. Can not handle value greater than u64
 			// 2. Refund more (+2300 call_stipend) than EVM (bug)
 			// 3. Introduce TransferException, a Fatal error
-			if transfer.value > U256::from(u64::max_value()) || transfer.token_value > U256::from(u64::max_value()){
+			// TODO: check allowTvmConstantinople
+			if transfer.value > U256::from(u64::max_value()) || transfer.token_value > U256::from(u64::max_value()) {
+				let _ = self.gasometer.record_stipend(gas_limit);
+				return Capture::Exit(
+					(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
+				);
+			}
+			// TRON: validateForSmartContract
+			if transfer.source == transfer.target {
+				// Can not transfer to oneself
 				let _ = self.gasometer.record_stipend(gas_limit);
 				return Capture::Exit(
 					(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
