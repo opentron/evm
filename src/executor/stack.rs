@@ -33,7 +33,7 @@ pub struct StackExecutor<'backend, 'config, B> {
 	state: BTreeMap<H160, StackAccount>,
 	deleted: BTreeSet<H160>,
 	logs: Vec<Log>,
-	precompile: fn(H160, &[u8], Option<usize>) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>>,
+	precompile: fn(H160, &[u8], Option<usize>, &dyn Backend) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>>,
 	is_static: bool,
 	depth: Option<usize>,
 	nonce: u64,
@@ -42,7 +42,8 @@ pub struct StackExecutor<'backend, 'config, B> {
 fn no_precompile(
 	_address: H160,
 	_input: &[u8],
-	_target_gas: Option<usize>
+	_target_gas: Option<usize>,
+	_backend: &dyn Backend
 ) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>> {
 	None
 }
@@ -62,7 +63,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		backend: &'backend B,
 		gas_limit: usize,
 		config: &'config Config,
-		precompile: fn(H160, &[u8], Option<usize>) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>>,
+		precompile: fn(H160, &[u8], Option<usize>, &dyn Backend) -> Option<Result<(ExitSucceed, Vec<u8>, usize), ExitError>>,
 	) -> Self {
 		Self {
 			backend,
@@ -595,7 +596,8 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			}
 		}
 
-		if let Some(ret) = (substate.precompile)(code_address, &input, Some(gas_limit)) {
+		// TRON: Introduce a very bad precompile `validatemultisign`, which requires env.
+		if let Some(ret) = (substate.precompile)(code_address, &input, Some(gas_limit), self.backend) {
 			return match ret {
 				Ok((s, out, cost)) => {
 					let _ = substate.gasometer.record_cost(cost);

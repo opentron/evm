@@ -92,6 +92,8 @@ pub trait Backend {
 
 	/// Transaction root hash.
 	fn transaction_root_hash(&self) -> H256;
+	/// Validate multisig.
+	fn validate_multisig(&self, address: H160, perm_id: U256, message: H256, signatures: &[&[u8]]) -> bool;
 }
 
 /// EVM backend that can apply changes.

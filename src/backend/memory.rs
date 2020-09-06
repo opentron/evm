@@ -119,6 +119,10 @@ impl<'vicinity> Backend for MemoryBackend<'vicinity> {
 	}
 
 	fn transaction_root_hash(&self) -> H256 { H256::default() }
+
+	fn validate_multisig(&self, _address: H160, _perm_id: U256, _message: H256, _signatures: &[&[u8]]) -> bool {
+		true
+	}
 }
 
 impl<'vicinity> ApplyBackend for MemoryBackend<'vicinity> {
