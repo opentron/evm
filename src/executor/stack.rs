@@ -344,11 +344,30 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 	/// Transfer balance with the given struct.
 	pub fn transfer(&mut self, transfer: Transfer) -> Result<(), ExitError> {
 		println!("!! transfer .... {:?}", transfer);
+		// TRON:
+		// 1. Can not handle value greater than u64
+		// 2. Refund more (+2300 call_stipend) than EVM (bug) (handled in upper level)
+		// 3. Introduce TransferException, a Fatal error with refund
+		// TODO: check allowTvmConstantinople
+		if transfer.value > U256::from(u64::max_value()) || transfer.token_value > U256::from(u64::max_value()) {
+			// value is out of long range
+			return Err(ExitError::TransferException);
+		}
+
 		if transfer.value > U256::zero() {
 			self.withdraw(transfer.source, transfer.value)?;
+			// TRON: When transfer amount is sufficient, will check transfer to oneself, or else revert.
+			if transfer.source == transfer.target {
+				// cannot transfer to oneself
+				return Err(ExitError::TransferException);
+			}
 			self.deposit(transfer.target, transfer.value);
 		} else if transfer.token_value > U256::zero() {
 			self.withdraw_token(transfer.source, transfer.token_id, transfer.token_value)?;
+			if transfer.source == transfer.target {
+				// cannot transfer to oneself
+				return Err(ExitError::TransferException);
+			}
 			self.deposit_token(transfer.target, transfer.token_id, transfer.token_value);
 		}
 		Ok(())
@@ -562,25 +581,6 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			if take_stipend && (transfer.value != U256::zero() || transfer.token_value != U256::zero()) {
 				gas_limit = gas_limit.saturating_add(self.config.call_stipend);
 			}
-			// TRON:
-			// 1. Can not handle value greater than u64
-			// 2. Refund more (+2300 call_stipend) than EVM (bug)
-			// 3. Introduce TransferException, a Fatal error
-			// TODO: check allowTvmConstantinople
-			if transfer.value > U256::from(u64::max_value()) || transfer.token_value > U256::from(u64::max_value()) {
-				let _ = self.gasometer.record_stipend(gas_limit);
-				return Capture::Exit(
-					(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
-				);
-			}
-			// TRON: validateForSmartContract
-			if transfer.source == transfer.target {
-				// Can not transfer to oneself
-				let _ = self.gasometer.record_stipend(gas_limit);
-				return Capture::Exit(
-					(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
-				);
-			}
 		}
 
 		let code = self.code(code_address);
@@ -598,6 +598,13 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		if let Some(transfer) = transfer {
 			match substate.transfer(transfer) {
 				Ok(()) => (),
+				// TRON: TransferException is a fatal error, with refund.
+				Err(ExitError::TransferException) => {
+					let _ = self.gasometer.record_stipend(gas_limit);
+					return Capture::Exit(
+						(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
+					);
+				}
 				Err(e) => {
 					let _ = self.merge_revert(substate);
 					return Capture::Exit((ExitReason::Error(e), Vec::new()))
