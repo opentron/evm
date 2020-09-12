@@ -145,7 +145,10 @@ pub fn blockhash<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H> {
 }
 
 pub fn coinbase<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H> {
-	push!(runtime, handler.block_coinbase().into());
+	// TRON: Use 21-byte address here.
+	let mut block_coinbase: H256 = handler.block_coinbase().into();
+	block_coinbase.as_bytes_mut()[11] = 0x41;
+	push!(runtime, block_coinbase);
 	Control::Continue
 }
 
