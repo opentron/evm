@@ -189,7 +189,7 @@ pub struct Config {
 	/// Has create2.
 	pub has_create2: bool,
 	/// Has real create2.
-	has_real_create2: bool,
+	pub has_real_create2: bool,
 	/// Has revert.
 	pub has_revert: bool,
 	/// Has return data.
