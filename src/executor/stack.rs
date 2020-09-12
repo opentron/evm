@@ -343,7 +343,6 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 
 	/// Transfer balance with the given struct.
 	pub fn transfer(&mut self, transfer: Transfer) -> Result<(), ExitError> {
-		println!("!! transfer .... {:?}", transfer);
 		// TRON:
 		// 1. Can not handle value greater than u64
 		// 2. Refund more (+2300 call_stipend) than EVM (bug) (handled in upper level)
@@ -819,6 +818,9 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 		is_static: bool,
 		context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Self::CallInterrupt> {
+		println!("! CALLing {:?} input={} depth={:?} static={} transfer={}",
+			code_address, input.len(), self.depth, is_static,
+			transfer.as_ref().map(|xfer| xfer.value).unwrap_or_default());
 		self.call_inner(code_address, transfer, input, target_gas, is_static, true, true, context)
 	}
 
