@@ -5,7 +5,9 @@ pub const G_LOW: usize = 5;
 pub const G_MID: usize = 8;
 pub const G_HIGH: usize = 10;
 pub const G_JUMPDEST: usize = 1;
-pub const R_SUICIDE: isize = 24000;
+// TRON: Has no suicide refund at all.
+// pub const R_SUICIDE: isize = 24000;
+pub const R_SUICIDE: isize = 0;
 pub const G_CREATE: usize = 32000;
 pub const G_CALLVALUE: usize = 9000;
 pub const G_NEWACCOUNT: usize = 25000;
