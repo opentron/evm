@@ -334,7 +334,7 @@ pub fn opcode_cost<H: Handler>(
 			target_exists: handler.exists(stack.peek(0)?.into()),
 			already_removed: handler.deleted(address),
 		},
-		Err(ExternalOpcode::Call) | Err(ExternalOpcode::CallToken)
+		Err(ExternalOpcode::Call)
 			if !is_static ||
 			(is_static && U256::from_big_endian(&stack.peek(2)?[..]) == U256::zero()) =>
 			GasCost::Call {
@@ -346,15 +346,26 @@ pub fn opcode_cost<H: Handler>(
 		Ok(Opcode::Invalid) => GasCost::Invalid,
 
 		// TVM
-		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId) =>
-			GasCost::Base,
-		Err(ExternalOpcode::IsContract) => GasCost::Balance,
-		Err(ExternalOpcode::TokenBalance) => GasCost::Balance,
+		Err(ExternalOpcode::CallToken)
+			if config.has_token_transfer &&
+			(!is_static || (is_static && U256::from_big_endian(&stack.peek(2)?[..]) == U256::zero())) =>
+			GasCost::Call {
+				value: U256::from_big_endian(&stack.peek(2)?[..]),
+				gas: U256::from_big_endian(&stack.peek(0)?[..]),
+				target_exists: handler.exists(stack.peek(1)?.into()),
+			},
+		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId)
+			if config.has_token_transfer => GasCost::Base,
+		Err(ExternalOpcode::TokenBalance) if config.has_token_transfer => GasCost::Balance,
+		Err(ExternalOpcode::IsContract) if config.has_iscontract => GasCost::Balance,
+
+		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId) |
+		Err(ExternalOpcode::TokenBalance) | Err(ExternalOpcode::IsContract) |
+		Err(ExternalOpcode::CallToken) => GasCost::Invalid,
 
 		Err(ExternalOpcode::Create) | Err(ExternalOpcode::Create2) |
 		Err(ExternalOpcode::SStore) | Err(ExternalOpcode::Log(_)) |
 		Err(ExternalOpcode::Suicide) | Err(ExternalOpcode::Call) |
-		Err(ExternalOpcode::CallToken) |
 
 		Err(ExternalOpcode::Other(_)) => GasCost::Invalid,
 	};
