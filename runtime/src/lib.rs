@@ -202,29 +202,60 @@ pub struct Config {
 	pub has_self_balance: bool,
 	/// Has ext code hash.
 	pub has_ext_code_hash: bool,
-	/// Has validate signature precompile.
-	pub has_validate_signature: bool,
-	/// Has shielded zksnark precompiles.
-	pub has_shielded: bool,
+	// TRON extensions:
+	/// Has token transfer.
+	pub has_token_transfer: bool,
+	/// Part of solidity059 upgrade, can transfer create new account, or error.
+	pub create_account_if_not_exist: bool,
+	/// Has iscontract.
+	pub has_iscontract: bool,
+	/// Has transfer exception.
+	pub has_transfer_exception: bool,
 }
 
 impl Config {
 	// TRON configuration
-	/// GreatVoyage4_1, under development.
-	pub fn great_voyage_4_1() -> Config {
-		let mut config = Config::great_voyage_4_0_1();
-		config.has_chain_id = true;
-		config.has_self_balance = true;
-		config
+
+	/// AllowTvmIstanbulUpgrade, 4.1 unreleased.
+	pub fn allow_tvm_istanbul(&mut self) {
+		self.has_chain_id = true;
+		self.has_self_balance = true;
+		self.has_real_create2 = true;
+		unimplemented!()
 	}
-	/// GreatVoyage4_0_1 hark fork.
-	pub fn great_voyage_4_0_1() -> Config {
-		let mut config = Config::odyssey_3_7();
-		config.has_shielded = true;
-		config
+
+	/// AllowTvmAssetIssueUpgrade, 4.1 unreleased.
+	pub fn allow_tvm_asset_issue(&mut self) {
+		unimplemented!()
 	}
-	/// Odyssey3_7.
-	pub const fn odyssey_3_7() -> Config {
+
+	/// AllowTvmStakeUpgrade, 4.1 unreleased.
+	pub fn allow_tvm_stake(&mut self) {
+		unimplemented!()
+	}
+
+	/// AllowTvmSolidity059Upgrade.
+	pub fn allow_tvm_solidity059(&mut self) {
+		self.create_account_if_not_exist = true;
+		self.has_iscontract = true;
+		self.has_transfer_exception = true;
+	}
+
+	/// AllowTvmConstantinopleUpgrade.
+	pub fn allow_tvm_constantinople(&mut self) {
+		self.has_bitwise_shifting = true;
+		self.has_ext_code_hash = true;
+		self.has_create2 = true;
+		self.has_real_create2 = false;
+	}
+
+	/// AllowTvmTransferTrc10Upgrade.
+	pub fn allow_tvm_asset_transfer(&mut self) {
+		self.has_token_transfer = true;
+	}
+
+	/// Initial TVM config.
+	pub const fn tvm() -> Config {
 		Config {
 			gas_ext_code: 20,
 			gas_ext_code_hash: 20,
@@ -253,16 +284,18 @@ impl Config {
 			create_contract_limit: None,
 			call_stipend: 2300,
 			has_delegate_call: true,
-			has_create2: true,
+			has_create2: false,
 			has_real_create2: false,
 			has_revert: true,
 			has_return_data: true,
-			has_bitwise_shifting: true,
+			has_bitwise_shifting: false,
 			has_chain_id: false,
 			has_self_balance: false,
-			has_ext_code_hash: true,
-			has_validate_signature: true,
-			has_shielded: false,
+			has_ext_code_hash: false,
+			has_token_transfer: false,
+			create_account_if_not_exist: false,
+			has_iscontract: false,
+			has_transfer_exception: false,
 		}
 	}
 	/// Frontier hard fork configuration.
@@ -303,8 +336,10 @@ impl Config {
 			has_chain_id: false,
 			has_self_balance: false,
 			has_ext_code_hash: false,
-			has_validate_signature: false,
-			has_shielded: false,
+			has_token_transfer: false,
+			create_account_if_not_exist: false,
+			has_iscontract: false,
+			has_transfer_exception: false,
 		}
 	}
 
@@ -346,8 +381,10 @@ impl Config {
 			has_chain_id: true,
 			has_self_balance: true,
 			has_ext_code_hash: true,
-			has_validate_signature: false,
-			has_shielded: false,
+			has_token_transfer: false,
+			create_account_if_not_exist: false,
+			has_iscontract: false,
+			has_transfer_exception: false,
 		}
 	}
 }
