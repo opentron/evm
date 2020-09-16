@@ -347,13 +347,28 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		// 1. Can not handle value greater than u64
 		// 2. Refund more (+2300 call_stipend) than EVM (bug) (handled in upper level)
 		// 3. Introduce TransferException, a Fatal error with refund
-		// TODO: check allowTvmConstantinople
+		// value is out of long range
 		if transfer.value > U256::from(u64::max_value()) || transfer.token_value > U256::from(u64::max_value()) {
-			// value is out of long range
-			return Err(ExitError::TransferException);
+			if self.config.has_transfer_exception {
+				return Err(ExitError::TransferException);
+			} else {
+				// TODO: What's the type in java-tron?
+				return Err(ExitError::TransferException);
+			}
 		}
 
 		if transfer.value > U256::zero() {
+			// TRON: validateForSmartContract, only amount > 0
+			// `self.exists` is cached, so `self.backend.exists` should be used.
+			if !self.config.create_account_if_not_exist && !self.backend.exists(transfer.target) {
+				if self.config.has_transfer_exception {
+					return Err(ExitError::TransferException);
+				} else {
+					// TRON: BytecodeExecutionException as Unknown
+					return Err(ExitError::Unknown);
+				}
+			}
+
 			self.withdraw(transfer.source, transfer.value)?;
 			// TRON: When transfer amount is sufficient, will check transfer to oneself, or else revert.
 			if transfer.source == transfer.target {
@@ -604,6 +619,12 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 						(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::TransferException)), Vec::new())
 					);
 				}
+				// TRON: Unknown is a fatal error, without refund.
+				Err(ExitError::Unknown) => {
+					return Capture::Exit(
+						(ExitReason::Fatal(ExitFatal::CallErrorAsFatal(ExitError::Unknown)), Vec::new())
+					);
+				}
 				Err(e) => {
 					let _ = self.merge_revert(substate);
 					return Capture::Exit((ExitReason::Error(e), Vec::new()))
@@ -821,6 +842,7 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 		println!("! CALLing {:?} input={} depth={:?} static={} transfer={}",
 			code_address, input.len(), self.depth, is_static,
 			transfer.as_ref().map(|xfer| xfer.value).unwrap_or_default());
+		// println!("! transfer {:?}", transfer);
 		self.call_inner(code_address, transfer, input, target_gas, is_static, true, true, context)
 	}
 

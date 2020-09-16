@@ -78,8 +78,6 @@ pub enum ExitError {
 	InvalidJump,
 	/// An opcode accesses memory region, but the region is invalid.
 	InvalidRange,
-	/// TRON: ILLEGAL_OPERATION
-	IllegalOperation,
 	/// Encountered the designated invalid opcode.
 	DesignatedInvalid,
 	/// Call stack is too deep (runtime).
@@ -88,8 +86,13 @@ pub enum ExitError {
 	CreateCollision,
 	/// Create init code exceeds limit (runtime).
 	CreateContractLimit,
+
+	/// TRON: ILLEGAL_OPERATION
+	IllegalOperation,
 	/// TRON: TransferException
 	TransferException,
+	/// TRON: Unknown
+	Unknown,
 
 	///	An opcode accesses external information, but the request is off offset
 	///	limit (runtime).
