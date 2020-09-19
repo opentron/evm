@@ -839,9 +839,9 @@ impl<'backend, 'config, B: Backend> Handler for StackExecutor<'backend, 'config,
 		is_static: bool,
 		context: Context,
 	) -> Capture<(ExitReason, Vec<u8>), Self::CallInterrupt> {
-		println!("! CALLing {:?} input={} depth={:?} static={} transfer={}",
-			code_address, input.len(), self.depth, is_static,
-			transfer.as_ref().map(|xfer| xfer.value).unwrap_or_default());
+		// println!("! CALLing {:?} input={} depth={:?} static={} transfer={}",
+		//	code_address, input.len(), self.depth, is_static,
+		//	transfer.as_ref().map(|xfer| xfer.value).unwrap_or_default());
 		// println!("! transfer {:?}", transfer);
 		self.call_inner(code_address, transfer, input, target_gas, is_static, true, true, context)
 	}
