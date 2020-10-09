@@ -44,15 +44,27 @@ pub fn eval<H: Handler>(state: &mut Runtime, opcode: ExternalOpcode, handler: &m
 		ExternalOpcode::DelegateCall => system::call(state, CallScheme::DelegateCall, handler),
 		ExternalOpcode::StaticCall => system::call(state, CallScheme::StaticCall, handler),
 
-		// Not supported
 		ExternalOpcode::ChainId => system::chainid(state, handler),
 
-		// call with TRC10 token
+		// TRC10 token extension
 		ExternalOpcode::CallTokenId => system::calltokenid(state),
 		ExternalOpcode::CallTokenValue => system::calltokenvalue(state),
 		ExternalOpcode::CallToken => system::call(state, CallScheme::CallToken, handler),
 		ExternalOpcode::TokenBalance => system::tokenbalance(state, handler),
+
 		ExternalOpcode::IsContract => system::iscontract(state),
+
+		// EVM 4.1
+		ExternalOpcode::IsWitness => system::iswitness(state),
+
+		ExternalOpcode::RewardBalance => system::rewardbalance(state, handler),
+		ExternalOpcode::WithdrawReward => system::withdrawreward(state, handler),
+
+		ExternalOpcode::Stake => system::stake(state, handler),
+		ExternalOpcode::Unstake => system::unstake(state, handler),
+
+		ExternalOpcode::AssetIssue => system::assetissue(state, handler),
+		ExternalOpcode::UpdateAsset => system::updateasset(state, handler),
 
 		ExternalOpcode::Other(opcode) => {
 			match handler.other(

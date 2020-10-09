@@ -205,12 +205,18 @@ pub struct Config {
 	// TRON extensions:
 	/// Has token transfer.
 	pub has_token_transfer: bool,
-	/// Part of solidity059 upgrade, can transfer create new account, or error.
+	/// Part of solidity059 upgrade, is transfer creates new account, or error.
 	pub create_account_if_not_exist: bool,
 	/// Has iscontract.
 	pub has_iscontract: bool,
 	/// Has transfer exception.
 	pub has_transfer_exception: bool,
+	/// Has stake/unstake/withdrawreward/rewardbalance.
+	pub has_stake: bool,
+	/// Has tokenissue/updateasset.
+	pub has_token_issue: bool,
+	/// Has iswitness. (renamed from issrcandidate)
+	pub has_iswitness: bool,
 }
 
 impl Config {
@@ -221,17 +227,17 @@ impl Config {
 		self.has_chain_id = true;
 		self.has_self_balance = true;
 		self.has_real_create2 = true;
-		unimplemented!()
 	}
 
 	/// AllowTvmAssetIssueUpgrade, 4.1 unreleased.
 	pub fn allow_tvm_asset_issue(&mut self) {
-		unimplemented!()
+		self.has_token_issue =  true
 	}
 
 	/// AllowTvmStakeUpgrade, 4.1 unreleased.
 	pub fn allow_tvm_stake(&mut self) {
-		unimplemented!()
+		self.has_stake = true;
+		self.has_iswitness = true;
 	}
 
 	/// AllowTvmSolidity059Upgrade.
@@ -296,6 +302,9 @@ impl Config {
 			create_account_if_not_exist: false,
 			has_iscontract: false,
 			has_transfer_exception: false,
+			has_stake: false,
+			has_token_issue: false,
+			has_iswitness: false,
 		}
 	}
 	/// Frontier hard fork configuration.
@@ -340,6 +349,9 @@ impl Config {
 			create_account_if_not_exist: false,
 			has_iscontract: false,
 			has_transfer_exception: false,
+			has_stake: false,
+			has_token_issue: false,
+			has_iswitness: false,
 		}
 	}
 
@@ -385,6 +397,9 @@ impl Config {
 			create_account_if_not_exist: false,
 			has_iscontract: false,
 			has_transfer_exception: false,
+			has_stake: false,
+			has_token_issue: false,
+			has_iswitness: false,
 		}
 	}
 }

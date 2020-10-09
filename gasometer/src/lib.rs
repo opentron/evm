@@ -359,9 +359,21 @@ pub fn opcode_cost<H: Handler>(
 		Err(ExternalOpcode::TokenBalance) if config.has_token_transfer => GasCost::Balance,
 		Err(ExternalOpcode::IsContract) if config.has_iscontract => GasCost::Balance,
 
+		Err(ExternalOpcode::Stake) | Err(ExternalOpcode::Unstake) if config.has_stake => GasCost::Stake,
+		Err(ExternalOpcode::WithdrawReward) if config.has_stake => GasCost::WithdrawReward,
+		Err(ExternalOpcode::AssetIssue) if config.has_token_issue => GasCost::AssetIssue,
+		Err(ExternalOpcode::UpdateAsset) if config.has_token_issue => GasCost::UpdateAsset,
+		Err(ExternalOpcode::RewardBalance) if config.has_stake => GasCost::Balance,
+		Err(ExternalOpcode::IsWitness) if config.has_iswitness => GasCost::Balance,
+
+
 		Err(ExternalOpcode::CallTokenValue) | Err(ExternalOpcode::CallTokenId) |
-		Err(ExternalOpcode::TokenBalance) | Err(ExternalOpcode::IsContract) |
-		Err(ExternalOpcode::CallToken) => GasCost::Invalid,
+		Err(ExternalOpcode::TokenBalance) | Err(ExternalOpcode::CallToken) |
+		Err(ExternalOpcode::IsContract) | Err(ExternalOpcode::IsWitness) |
+		Err(ExternalOpcode::Stake) | Err(ExternalOpcode::Unstake) |
+		Err(ExternalOpcode::WithdrawReward) | Err(ExternalOpcode::RewardBalance) |
+		Err(ExternalOpcode::AssetIssue) | Err(ExternalOpcode::UpdateAsset)
+		=> GasCost::Invalid,
 
 		Err(ExternalOpcode::Create) | Err(ExternalOpcode::Create2) |
 		Err(ExternalOpcode::SStore) | Err(ExternalOpcode::Log(_)) |
@@ -519,6 +531,10 @@ impl<'config> Inner<'config> {
 			GasCost::Balance => self.config.gas_balance,
 			GasCost::BlockHash => consts::G_BLOCKHASH,
 			GasCost::ExtCodeHash => self.config.gas_ext_code_hash,
+			GasCost::Stake => consts::G_STAKE,
+			GasCost::WithdrawReward => consts::G_WITHDRAWREWARD,
+			GasCost::AssetIssue => consts::G_ASSETISSUE,
+			GasCost::UpdateAsset => consts::G_UPDATEASSET,
 		})
 	}
 
@@ -651,6 +667,15 @@ pub enum GasCost {
 	JumpDest,
 	/// Gas cost for `SLOAD`.
 	SLoad,
+	// TVM ext.
+	/// Gas cost for `STAKE`/`UNSTAKE`.
+	Stake,
+	/// Gas cost for `WITHDRAWREWARD`.
+	WithdrawReward,
+	/// Gas cost for `TOKENISSUE`.
+	AssetIssue,
+	/// Gas cost for `UPDATEASSET`.
+	UpdateAsset,
 }
 
 /// Memory cost.

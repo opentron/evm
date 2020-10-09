@@ -255,13 +255,19 @@ pub fn create<H: Handler>(
 	let scheme = if is_create2 {
 		pop!(runtime, salt);
 		let code_hash = H256::from_slice(Keccak256::digest(&code).as_slice());
-		if !runtime._config.has_real_create2 {
-			unimplemented!("TODO: fake CREATE2");
-		}
-		CreateScheme::Create2 {
-			caller: runtime.context.address,
-			salt,
-			code_hash,
+		if runtime._config.has_real_create2 {
+			CreateScheme::Create2 {
+				caller: runtime.context.address,
+				salt,
+				code_hash,
+			}
+		} else {
+			// NOTE: Fake CREATE2, use caller address.
+			CreateScheme::Create2 {
+				caller: runtime.context.caller,
+				salt,
+				code_hash,
+			}
 		}
 	} else {
 		CreateScheme::Legacy {
@@ -461,7 +467,6 @@ pub fn call<'config, H: Handler>(
 	}
 }
 
-// TODO
 pub fn calltokenid<H: Handler>(runtime: &mut Runtime) -> Control<H> {
 	let mut ret = H256::default();
 	runtime.context.call_token_id.to_big_endian(&mut ret[..]);
@@ -492,6 +497,80 @@ pub fn iscontract<H: Handler>(runtime: &mut Runtime) -> Control<H> {
 	// TODO: impl address type
 	let is_contract = false;
 	push!(runtime, H256::from_low_u64_be(is_contract as _));
+
+	Control::Continue
+}
+
+pub fn iswitness<H: Handler>(runtime: &mut Runtime) -> Control<H> {
+	pop!(runtime, _address);
+	// TODO: impl address type
+	let is_witness = false;
+	push!(runtime, H256::from_low_u64_be(is_witness as _));
+
+	Control::Continue
+}
+
+pub fn rewardbalance<H: Handler>(runtime: &mut Runtime, _handler: &H) -> Control<H> {
+	pop!(runtime, _address);
+
+	// push_u256!(runtime, handler.reward_balance(address.into(), token_id));
+	push_u256!(runtime, U256::zero());
+
+	Control::Continue
+}
+
+pub fn withdrawreward<H: Handler>(runtime: &mut Runtime, _handler: &H) -> Control<H> {
+	let _address = runtime.context.address;
+	push_u256!(runtime, U256::zero());
+
+	Control::Continue
+}
+
+pub fn stake<H: Handler>(runtime: &mut Runtime, _handler: &H) -> Control<H> {
+	pop!(runtime, _witness_address);
+	pop_u256!(runtime, _amount);
+
+	// push 1 or 0
+	push_u256!(runtime, U256::zero());
+
+	Control::Continue
+}
+
+pub fn unstake<H: Handler>(runtime: &mut Runtime, _handler: &H) -> Control<H> {
+	// push 1 or 0
+	push_u256!(runtime, U256::zero());
+
+	Control::Continue
+}
+
+pub fn assetissue<H: Handler>(runtime: &mut Runtime, _handler: &H) -> Control<H> {
+	pop!(runtime, _name);
+	pop!(runtime, _abbr);
+	pop_u256!(runtime, _total_supply);
+	pop_u256!(runtime, _decimals);
+
+	// push 1 or 0
+	push_u256!(runtime, U256::zero());
+
+	Control::Continue
+}
+
+// NOTE: This is a really ugly implementation in java-tron.
+// To pass long bytes as parameters, `SHA3` is the de facto standard.
+pub fn updateasset<H: Handler>(runtime: &mut Runtime, _handler: &H) -> Control<H> {
+	pop!(runtime, _unknown); // ???
+	pop_u256!(runtime, url_offset);
+	pop_u256!(runtime, desc_offset);
+
+	let url_len = U256::from_big_endian(&runtime.machine.memory_mut().get(url_offset.as_usize(), 32));
+	let desc_len = U256::from_big_endian(&runtime.machine.memory_mut().get(desc_offset.as_usize(), 32));
+
+	let url = runtime.machine.memory_mut().get(url_offset.as_usize() + 32, url_len.as_usize());
+	let desc = runtime.machine.memory_mut().get(desc_offset.as_usize() + 32, desc_len.as_usize());
+
+	eprintln!("URL: {:?}\nDESC: {:?}", url, desc);
+
+	push_u256!(runtime, U256::zero());
 
 	Control::Continue
 }

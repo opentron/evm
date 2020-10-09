@@ -254,6 +254,13 @@ impl Opcode {
 			0xd2 => Err(ExternalOpcode::CallTokenValue),
 			0xd3 => Err(ExternalOpcode::CallTokenId),
 			0xd4 => Err(ExternalOpcode::IsContract),
+			0xd5 => Err(ExternalOpcode::Stake),
+			0xd6 => Err(ExternalOpcode::Unstake),
+			0xd7 => Err(ExternalOpcode::WithdrawReward),
+			0xd8 => Err(ExternalOpcode::RewardBalance),
+			0xd9 => Err(ExternalOpcode::IsWitness),
+			0xda => Err(ExternalOpcode::AssetIssue),
+			0xdb => Err(ExternalOpcode::UpdateAsset),
 
 			0xf0 => Err(ExternalOpcode::Create),
 			0xf1 => Err(ExternalOpcode::Call),
@@ -331,6 +338,20 @@ pub enum ExternalOpcode {
 	CallTokenId,
 	/// `ISCONTRACT`
 	IsContract,
+	/// `STAKE`
+	Stake,
+	/// `UNSTAKE`
+	Unstake,
+	/// `WITHDRAWREWARD`
+	WithdrawReward,
+	/// `REWARDBALANCE`
+	RewardBalance,
+	/// `ISSRCANDIDATE`, renamed to `ISWITNESS`
+	IsWitness,
+	/// `ASSETISSUE`
+	AssetIssue,
+	/// `UPDATEASSET`
+	UpdateAsset,
 	// end For TRON
 
 	/// `CREATE`

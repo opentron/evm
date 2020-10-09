@@ -21,3 +21,7 @@ pub const G_SHA3WORD: usize = 6;
 pub const G_COPY: usize = 3;
 pub const G_BLOCKHASH: usize = 20;
 pub const G_CODEDEPOSIT: usize = 200;
+pub const G_STAKE: usize = 35000;
+pub const G_WITHDRAWREWARD: usize = 25000;
+pub const G_ASSETISSUE: usize = 25000;
+pub const G_UPDATEASSET: usize = 5000;
