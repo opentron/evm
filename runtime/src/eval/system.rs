@@ -52,7 +52,11 @@ pub fn selfbalance<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H>
 }
 
 pub fn origin<H: Handler>(runtime: &mut Runtime, handler: &H) -> Control<H> {
-	let ret = H256::from(handler.origin());
+	// TRON: Use 21-byte address before allowMultisig.
+	let mut ret = H256::from(handler.origin());
+	if runtime._config.has_buggy_origin {
+		ret.as_bytes_mut()[11] = 0x41;
+	}
 	push!(runtime, ret);
 
 	Control::Continue

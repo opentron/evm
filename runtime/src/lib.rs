@@ -217,6 +217,8 @@ pub struct Config {
 	pub has_token_issue: bool,
 	/// Has iswitness. (renamed from issrcandidate)
 	pub has_iswitness: bool,
+	/// Has a buggy origin opcode. (21 bytes origin address)
+	pub has_buggy_origin: bool,
 }
 
 impl Config {
@@ -305,6 +307,7 @@ impl Config {
 			has_stake: false,
 			has_token_issue: false,
 			has_iswitness: false,
+			has_buggy_origin: true,
 		}
 	}
 	/// Frontier hard fork configuration.
@@ -352,6 +355,7 @@ impl Config {
 			has_stake: false,
 			has_token_issue: false,
 			has_iswitness: false,
+			has_buggy_origin: false,
 		}
 	}
 
@@ -400,6 +404,7 @@ impl Config {
 			has_stake: false,
 			has_token_issue: false,
 			has_iswitness: false,
+			has_buggy_origin: false,
 		}
 	}
 }
