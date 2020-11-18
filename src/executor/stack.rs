@@ -352,8 +352,7 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 			if self.config.has_transfer_exception {
 				return Err(ExitError::TransferException);
 			} else {
-				// TODO: What's the type in java-tron?
-				return Err(ExitError::TransferException);
+				return Err(ExitError::Unknown);
 			}
 		}
 
@@ -600,7 +599,13 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		let code = self.code(code_address);
 
 		let mut substate = self.substate(gas_limit, is_static);
-		substate.account_mut(context.address);
+		// TRON: Before Solidity059 update, call with no value to non-existed account
+		// will succeed without creating account.
+		//
+		// See-also: https://github.com/opentron/opentron/issues/45
+		if self.config.create_account_if_not_exist {
+			substate.account_mut(context.address);
+		}
 
 		if let Some(depth) = self.depth {
 			if depth + 1 > self.config.call_stack_limit {
