@@ -391,17 +391,17 @@ impl<'backend, 'config, B: Backend> StackExecutor<'backend, 'config, B> {
 		match scheme {
 			CreateScheme::Create2 { caller, code_hash, salt } => {
 				let mut hasher = Keccak256::new();
-				hasher.input(&[0x41]);
-				hasher.input(&caller[..]);
-				hasher.input(&salt[..]);
-				hasher.input(&code_hash[..]);
-				H256::from_slice(hasher.result().as_slice()).into()
+				hasher.update(&[0x41]);
+				hasher.update(&caller[..]);
+				hasher.update(&salt[..]);
+				hasher.update(&code_hash[..]);
+				H256::from_slice(hasher.finalize().as_slice()).into()
 			},
 			CreateScheme::Legacy { transaction_root_hash, nonce } => {
 				let mut hasher = Keccak256::new();
-				hasher.input(transaction_root_hash.as_bytes());
-				hasher.input(&nonce.to_be_bytes()[..]);
-				H256::from_slice(hasher.result().as_slice()).into()
+				hasher.update(transaction_root_hash.as_bytes());
+				hasher.update(&nonce.to_be_bytes()[..]);
+				H256::from_slice(hasher.finalize().as_slice()).into()
 			},
 			CreateScheme::Fixed(naddress) => {
 				naddress
